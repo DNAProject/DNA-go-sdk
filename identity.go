@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
-// Copyright 2019 DNA Dev team
+// Copyright 2019 the DNA Dev team
+// Copyright 2018 the Ontology Dev team
 //
 package DNA_go_sdk
 
