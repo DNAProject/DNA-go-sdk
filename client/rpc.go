@@ -16,7 +16,7 @@
  * along with The ontology.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//RPC client for ontology
+//RPC client for DNA blockchain
 package client
 
 import (
@@ -24,14 +24,16 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/ontio/ontology-go-sdk/utils"
-	"github.com/ontio/ontology/core/types"
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/DNAProject/DNA-go-sdk/utils"
+	"github.com/DNAProject/DNA/common"
+	"github.com/DNAProject/DNA/core/types"
 )
 
-//RpcClient for ontology rpc api
+//RpcClient for DNA blockchain rpc api
 type RpcClient struct {
 	addr       string
 	httpClient *http.Client
@@ -64,7 +66,7 @@ func (this *RpcClient) SetHttpClient(httpClient *http.Client) *RpcClient {
 	return this
 }
 
-//GetVersion return the version of ontology
+//GetVersion return the version of DNA blockchain
 func (this *RpcClient) getVersion(qid string) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_VERSION, []interface{}{})
 }
@@ -87,7 +89,7 @@ func (this *RpcClient) getBlockInfoByHeight(qid string, height uint32) ([]byte, 
 	return this.sendRpcRequest(qid, RPC_GET_BLOCK, []interface{}{height, 1})
 }
 
-//GetBlockCount return the total block count of ontology
+//GetBlockCount return the total block count of DNA blockchain
 func (this *RpcClient) getBlockCount(qid string) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_BLOCK_COUNT, []interface{}{})
 }
@@ -104,7 +106,7 @@ func (this *RpcClient) getCurrentBlockHeight(qid string) ([]byte, error) {
 	return json.Marshal(count - 1)
 }
 
-//GetCurrentBlockHash return the current block hash of ontology
+//GetCurrentBlockHash return the current block hash of DNA blockchain
 func (this *RpcClient) getCurrentBlockHash(qid string) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_CURRENT_BLOCK_HASH, []interface{}{})
 }
@@ -135,7 +137,7 @@ func (this *RpcClient) getRawTransaction(qid, txHash string) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_TRANSACTION, []interface{}{txHash})
 }
 
-//GetSmartContract return smart contract deployed in ontology by specified smart contract address
+//GetSmartContract return smart contract deployed in DNA blockchain by specified smart contract address
 func (this *RpcClient) getSmartContract(qid, contractAddress string) ([]byte, error) {
 	return this.sendRpcRequest(qid, RPC_GET_SMART_CONTRACT, []interface{}{contractAddress})
 }
@@ -162,11 +164,8 @@ func (this *RpcClient) getBlockTxHashesByHeight(qid string, height uint32) ([]by
 }
 
 func (this *RpcClient) sendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error) {
-	var buffer bytes.Buffer
-	err := tx.Serialize(&buffer)
-	if err != nil {
-		return nil, fmt.Errorf("serialize error:%s", err)
-	}
+	buffer := common.NewZeroCopySink(nil)
+	tx.Serialization(buffer)
 	txData := hex.EncodeToString(buffer.Bytes())
 	params := []interface{}{txData}
 	if isPreExec {
@@ -175,7 +174,7 @@ func (this *RpcClient) sendRawTransaction(qid string, tx *types.Transaction, isP
 	return this.sendRpcRequest(qid, RPC_SEND_TRANSACTION, params)
 }
 
-//sendRpcRequest send Rpc request to ontology
+//sendRpcRequest send Rpc request to DNA blockchain
 func (this *RpcClient) sendRpcRequest(qid, method string, params []interface{}) ([]byte, error) {
 	rpcReq := &JsonRpcRequest{
 		Version: JSON_RPC_VERSION,

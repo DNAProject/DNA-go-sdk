@@ -1,4 +1,4 @@
-package ontology_go_sdk
+package DNA_go_sdk
 
 import (
 	"encoding/hex"

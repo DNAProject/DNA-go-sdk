@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
-	ontology_go_sdk "github.com/ontio/ontology-go-sdk"
-	"github.com/ontio/ontology/core/payload"
+	sdk "github.com/DNAProject/DNA-go-sdk"
+	"github.com/DNAProject/DNA/core/payload"
 )
 
 func main() {
-	testOntSdk := ontology_go_sdk.NewOntologySdk()
-	testOntSdk.NewRpcClient().SetAddress("http://dappnode1.ont.io:20336")
-	for i := uint32(4513925); i > 100000; i++ {
+	testOntSdk := sdk.NewBlockchainSdk()
+	testOntSdk.NewRpcClient().SetAddress("http://127.0.0.1:20336")
+	for i := uint32(0); i < 1000; i++ {
 		block, err := testOntSdk.GetBlockByHeight(i)
 		if err != nil {
 			fmt.Println("error: ", err)
@@ -18,7 +18,7 @@ func main() {
 		for _, tx := range block.Transactions {
 			invokeCode, ok := tx.Payload.(*payload.InvokeCode)
 			if ok {
-				res, err := ontology_go_sdk.ParsePayload(invokeCode.Code)
+				res, err := sdk.ParsePayload(invokeCode.Code)
 				if err != nil {
 					//fmt.Printf("error: %s, height:%d\n", err, i)
 					continue

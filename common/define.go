@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with The ontology.  If not, see <http://www.gnu.org/licenses/>.
  */
-//Some common define of ontology-go-sdk
+//Some common define of DNA-go-sdk
 package common
 
 import (
@@ -23,9 +23,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/ontio/ontology/common"
-	"github.com/ontio/ontology/core/payload"
 	"math/big"
+
+	"github.com/DNAProject/DNA/common"
+	"github.com/DNAProject/DNA/core/payload"
 )
 
 var (

@@ -21,11 +21,11 @@ package utils
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/DNAProject/DNA/common"
+	"github.com/DNAProject/DNA/core/signature"
+	"github.com/DNAProject/DNA/core/types"
+	nvutils "github.com/DNAProject/DNA/smartcontract/service/native/utils"
 	"github.com/ontio/ontology-crypto/keypair"
-	"github.com/ontio/ontology/common"
-	"github.com/ontio/ontology/core/signature"
-	"github.com/ontio/ontology/core/types"
-	nvutils "github.com/ontio/ontology/smartcontract/service/native/utils"
 	"os"
 	"sort"
 	"strings"
@@ -70,10 +70,8 @@ func GetContractAddress(contractCode string) (common.Address, error) {
 func GetAssetAddress(asset string) (common.Address, error) {
 	var contractAddress common.Address
 	switch strings.ToUpper(asset) {
-	case "ONT":
-		contractAddress = nvutils.OntContractAddress
-	case "ONG":
-		contractAddress = nvutils.OngContractAddress
+	case "GAS":
+		contractAddress = nvutils.GasContractAddress
 	default:
 		return common.ADDRESS_EMPTY, fmt.Errorf("asset:%s not equal ont or ong", asset)
 	}

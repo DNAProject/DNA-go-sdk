@@ -18,14 +18,14 @@
 package utils
 
 import (
-	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	sdkcom "github.com/ontio/ontology-go-sdk/common"
-	"github.com/ontio/ontology/common"
-	"github.com/ontio/ontology/core/payload"
-	"github.com/ontio/ontology/core/types"
+
+	sdkcom "github.com/DNAProject/DNA-go-sdk/common"
+	"github.com/DNAProject/DNA/common"
+	"github.com/DNAProject/DNA/core/payload"
+	"github.com/DNAProject/DNA/core/types"
 )
 
 func GetVersion(data []byte) (string, error) {
@@ -156,9 +156,8 @@ func GetSmartContract(data []byte) (*payload.DeployCode, error) {
 	if err != nil {
 		return nil, fmt.Errorf("hex.DecodeString error:%s", err)
 	}
-	buf := bytes.NewReader(hexData)
 	deploy := &payload.DeployCode{}
-	err = deploy.Deserialize(buf)
+	err = deploy.Deserialization(common.NewZeroCopySource(hexData))
 	if err != nil {
 		return nil, err
 	}

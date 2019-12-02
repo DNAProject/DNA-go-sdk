@@ -1,6 +1,6 @@
-# Go SDK For Ontology
+# Go SDK For DNA
 
-* [Go SDK For Ontology](#go-sdk-for-ontology)
+* [Go SDK For DNA](#go-sdk-for-DNA)
 	* [1. Overview](#1-overview)
 	* [2. How to use?](#2-how-to-use)
 		* [2.1 Block Chain API](#21-block-chain-api)
@@ -19,9 +19,9 @@
 			* [2.1.13 Get block merkle proof by transaction hash](#2113-get-block-merkle-proof-by-transaction-hash)
 			* [2.1.14 Get transaction state of transaction pool](#2114-get-transaction-state-of-transaction-pool)
 			* [2.1.15 Get transaction count in transaction pool](#2115-get-transaction-count-in-transaction-pool)
-			* [2.1.16 Get version of Ontology](#2116-get-version-of-ontology)
-			* [2.1.17 Get network id of Ontology](#2117-get-network-id-of-ontology)
-			* [2.1.18 Send transaction to Ontology](#2118-send-transaction-to-ontology)
+			* [2.1.16 Get version](#2116-get-version)
+			* [2.1.17 Get network id](#2117-get-network-id)
+			* [2.1.18 Send transaction](#2118-send-transaction)
 			* [2.19 Prepare execute transaction](#219-prepare-execute-transaction)
 		* [2.2 Wallet API](#22-wallet-api)
 			* [2.2.1 Create or Open Wallet](#221-create-or-open-wallet)
@@ -45,41 +45,32 @@
 			* [2.2.17 Change account password](#2217-change-account-password)
 			* [2.2.18 Import account to wallet](#2218-import-account-to-wallet)
 			* [2.2.19 Export account to a new wallet](#2219-export-account-to-a-new-wallet)
-		* [2.3 ONT Contract API](#23-ont-contract-api)
+		* [2.3 GAS Contract API](#23-gas-contract-api)
 			* [2.3.1 Get balance](#231-get-balance)
 			* [2.3.2 Transfer](#232-transfer)
 			* [2.3.3 Multiple Transfer](#233-multiple-transfer)
 			* [2.3.4 Approve](#234-approve)
 			* [2.3.5 Approve Balance](#235-approve-balance)
 			* [2.3.6 TransferFrom](#236-transferfrom)
-		* [2.4 ONG Contract API](#24-ong-contract-api)
-			* [2.4.1 Get balance](#241-get-balance)
-			* [2.4.2 Transfer](#242-transfer)
-			* [2.4.3 Multiple Transfer](#243-multiple-transfer)
-			* [2.4.4 Approve](#244-approve)
-			* [2.4.5 Approve Balance](#245-approve-balance)
-			* [2.4.6 TransferFrom](#246-transferfrom)
-			* [2.4.7 Withdraw ONG](#247-withdraw-ong)
-			* [2.4.8 Get unbound ONG](#248-get-unbound-ong)
 * [Contributing](#contributing)
 	* [Website](#website)
 	* [License](#license)
 
 ## 1. Overview
-This is a comprehensive Go library for the Ontology blockchain. Currently, it supports local wallet management, digital asset management,  deployment/invoking of smart contracts and communication with the Ontology Blockchain. In the future it will also support more rich functions and applications.
+This is a comprehensive Go library for the DNA blockchain. Currently, it supports local wallet management, digital asset management,  deployment/invoking of smart contracts and communication with the DNA Blockchain. In the future it will also support more rich functions and applications.
 
 ## 2. How to use?
 
-First, create an `OntologySDK` instance with the `NewOntologySdk` method.
+First, create an `DNASDK` instance with the `NewBlockchainSdk` method.
 
 ```
-ontSdk := NewOntologySdk()
+sdk := NewBlockchainSdk()
 ```
 
 Next, create an rpc, rest or websocket client.
 
 ```
-ontSdk.NewRpcClient().SetAddress("http://localhost:20336")
+sdk.NewRpcClient().SetAddress("http://localhost:20336")
 ```
 
 Then, call the rpc server through the sdk instance.
@@ -90,115 +81,115 @@ Then, call the rpc server through the sdk instance.
 #### 2.1.1 Get current block height
 
 ```
-ontSdk.GetCurrentBlockHeight() (uint32, error)
+sdk.GetCurrentBlockHeight() (uint32, error)
 ```
 
 #### 2.1.2 Get current block hash
 
 ```
-ontSdk.GetCurrentBlockHash() (common.Uint256, error)
+sdk.GetCurrentBlockHash() (common.Uint256, error)
 ```
 
 #### 2.1.3 Get block by height
 
 ```
-ontSdk.GetBlockByHeight(height uint32) (*types.Block, error)
+sdk.GetBlockByHeight(height uint32) (*types.Block, error)
 ```
 
 #### 2.1.4 Get block by hash
 
 ```
-ontSdk.GetBlockByHash(blockHash string) (*types.Block, error)
+sdk.GetBlockByHash(blockHash string) (*types.Block, error)
 ```
 
 #### 2.1.5 Get transaction by transaction hash
 
 ```
-ontSdk.GetTransaction(txHash string) (*types.Transaction, error)
+sdk.GetTransaction(txHash string) (*types.Transaction, error)
 ```
 
 #### 2.1.6 Get block hash by block height
 
 ```
-ontSdk.GetBlockHash(height uint32) (common.Uint256, error)
+sdk.GetBlockHash(height uint32) (common.Uint256, error)
 ```
 
 #### 2.1.7 Get block height by transaction hash
 
 ```
-ontSdk.GetBlockHeightByTxHash(txHash string) (uint32, error)
+sdk.GetBlockHeightByTxHash(txHash string) (uint32, error)
 ```
 
 #### 2.1.8 Get transaction hashes of block by block height
 
 ```
-ontSdk.GetBlockTxHashesByHeight(height uint32) (*sdkcom.BlockTxHashes, error)
+sdk.GetBlockTxHashesByHeight(height uint32) (*sdkcom.BlockTxHashes, error)
 ```
 
 #### 2.1.9 Get storage value of smart contract key
 
 ```
-ontSdk.GetStorage(contractAddress string, key []byte) ([]byte, error)
+sdk.GetStorage(contractAddress string, key []byte) ([]byte, error)
 ```
 
 #### 2.1.10 Get smart contract by contract address
 
 ```
-ontSdk.GetSmartContract(contractAddress string) (*sdkcom.SmartContract, error)
+sdk.GetSmartContract(contractAddress string) (*sdkcom.SmartContract, error)
 ```
 
 #### 2.1.11 Get smart contract event by transaction hash
 
 ```
-ontSdk.GetSmartContractEvent(txHash string) (*sdkcom.SmartContactEvent, error)
+sdk.GetSmartContractEvent(txHash string) (*sdkcom.SmartContactEvent, error)
 ```
 
 #### 2.1.12 Get all of smart contract events of block by block height
 
 ```
-ontSdk.GetSmartContractEventByHeight(height uint32) ([]*sdkcom.SmartContactEvent, error)
+sdk.GetSmartContractEventByHeight(height uint32) ([]*sdkcom.SmartContactEvent, error)
 ```
 
 #### 2.1.13 Get block merkle proof by transaction hash
 
 ```
-ontSdk.GetMerkleProof(txHash string) (*sdkcom.MerkleProof, error)
+sdk.GetMerkleProof(txHash string) (*sdkcom.MerkleProof, error)
 ```
 
 #### 2.1.14 Get transaction state of transaction pool
 
 ```
-ontSdk.GetMemPoolTxState(txHash string) (*sdkcom.MemPoolTxState, error)
+sdk.GetMemPoolTxState(txHash string) (*sdkcom.MemPoolTxState, error)
 ```
 
 #### 2.1.15 Get transaction count in transaction pool
 
 ```
-ontSdk.GetMemPoolTxCount() (*sdkcom.MemPoolTxCount, error)
+sdk.GetMemPoolTxCount() (*sdkcom.MemPoolTxCount, error)
 ```
 
-#### 2.1.16 Get version of Ontology
+#### 2.1.16 Get version
 
 ```
-ontSdk.GetVersion() (string, error)
+sdk.GetVersion() (string, error)
 ```
 
-#### 2.1.17 Get network id of Ontology
+#### 2.1.17 Get network id
 
 ```
-ontSdk.GetNetworkId() (uint32, error)
+sdk.GetNetworkId() (uint32, error)
 ```
 
-#### 2.1.18 Send transaction to Ontology
+#### 2.1.18 Send transaction
 
 ```
-ontSdk.SendTransaction(mutTx *types.MutableTransaction) (common.Uint256, error)
+sdk.SendTransaction(mutTx *types.MutableTransaction) (common.Uint256, error)
 ```
 
 #### 2.19 Prepare execute transaction
 
 ```
-ontSdk.PreExecTransaction(mutTx *types.MutableTransaction) (*sdkcom.PreExecResult, error)
+sdk.PreExecTransaction(mutTx *types.MutableTransaction) (*sdkcom.PreExecResult, error)
 ```
 
 ### 2.2 Wallet API
@@ -224,9 +215,9 @@ Note that any modifications of the wallet require calling `Save()` in order for 
 wa.NewAccount(keyType keypair.KeyType, curveCode byte, sigScheme s.SignatureScheme, passwd []byte) (*Account, error)
 ```
 
-Ontology supports three type of keys: ecdsa, sm2 and ed25519, and support 224, 256, 384, 521 bits length of key in ecdsa, but only support 256 bits length of key in sm2 and ed25519.
+DNA blockchain supports three type of keys: ecdsa, sm2 and ed25519, and support 224, 256, 384, 521 bits length of key in ecdsa, but only support 256 bits length of key in sm2 and ed25519.
 
-Ontology support multiple signature scheme.
+DNA blockchain supports multiple signature scheme.
 
 For ECDSA support SHA224withECDSA, SHA256withECDSA, SHA384withECDSA, SHA512withEdDSA, SHA3-224withECDSA, SHA3-256withECDSA, SHA3-384withECDSA, SHA3-512withECDSA, RIPEMD160withECDSA;
 
@@ -346,24 +337,24 @@ wa.ImportAccounts(accountDatas []*AccountData, passwds [][]byte) error
 wa.ExportAccounts(path string, accountDatas []*AccountData, passwds [][]byte, newScrypts ...*keypair.ScryptParam) (*Wallet, error)
 ```
 
-### 2.3 ONT Contract API
+### 2.3 GAS Contract API
 
 #### 2.3.1 Get balance
 
 ```
-ontSdk.Native.Ont.BalanceOf(address common.Address) (uint64, error)
+sdk.Native.Gas.BalanceOf(address common.Address) (uint64, error)
 ```
 
 #### 2.3.2 Transfer
 
 ```
-ontSdk.Native.Ont.Transfer(gasPrice, gasLimit uint64, from *Account, to common.Address, amount uint64) (common.Uint256, error)
+sdk.Native.Gas.Transfer(gasPrice, gasLimit uint64, from *Account, to common.Address, amount uint64) (common.Uint256, error)
 ```
 
 #### 2.3.3 Multiple Transfer
 
 ```
-ontSdk.Native.Ont.MultiTransfer(gasPrice, gasLimit uint64, states []*ont.State, signer *Account) (common.Uint256, error)
+sdk.Native.Gas.MultiTransfer(gasPrice, gasLimit uint64, states []*gas.State, signer *Account) (common.Uint256, error)
 ```
 
 A multi transfer does more than one transfer of ONT in one transaction.
@@ -371,77 +362,24 @@ A multi transfer does more than one transfer of ONT in one transaction.
 #### 2.3.4 Approve
 
 ```
-ontSdk.Native.Ont.Approve(gasPrice, gasLimit uint64, from *Account, to common.Address, amount uint64) (common.Uint256, error)
+sdk.Native.Gas.Approve(gasPrice, gasLimit uint64, from *Account, to common.Address, amount uint64) (common.Uint256, error)
 ```
 
 #### 2.3.5 Approve Balance
 
 ```
-ontSdk.Native.Ont.Allowance(from, to common.Address) (uint64, error)
+sdk.Native.Gas.Allowance(from, to common.Address) (uint64, error)
 ```
 
 #### 2.3.6 TransferFrom
 
 ```
-ontSdk.Native.Ont.TransferFrom(gasPrice, gasLimit uint64, sender *Account, from, to common.Address, amount uint64) (common.Uint256, error)
-```
-
-### 2.4 ONG Contract API
-
-
-#### 2.4.1 Get balance
-
-```
-ontSdk.Native.Ong.BalanceOf(address common.Address) (uint64, error)
-```
-
-#### 2.4.2 Transfer
-
-```
-ontSdk.Native.Ong.Transfer(gasPrice, gasLimit uint64, from *Account, to common.Address, amount uint64) (common.Uint256, error)
-```
-
-#### 2.4.3 Multiple Transfer
-
-```
-ontSdk.Native.Ong.MultiTransfer(gasPrice, gasLimit uint64, states []*ont.State, signer *Account) (common.Uint256, error)
-```
-
-A multi transfer does more than one transfer of ONG in one transaction.
-
-#### 2.4.4 Approve
-
-```
-ontSdk.Native.Ong.Approve(gasPrice, gasLimit uint64, from *Account, to common.Address, amount uint64) (common.Uint256, error)
-```
-
-#### 2.4.5 Approve Balance
-
-```
-ontSdk.Native.Ong.Allowance(from, to common.Address) (uint64, error)
-```
-
-#### 2.4.6 TransferFrom
-
-```
-ontSdk.Native.Ong.TransferFrom(gasPrice, gasLimit uint64, sender *Account, from, to common.Address, amount uint64) (common.Uint256, error)
-```
-
-#### 2.4.7 Withdraw ONG
-
-```
-ontSdk.Native.Ong.WithdrawONG(gasPrice, gasLimit uint64, address *Account, amount uint64) (common.Uint256, error)
-```
-
-#### 2.4.8 Get unbound ONG
-
-```
-ontSdk.Native.Ong.UnboundONG(address common.Address) (uint64, error)
+sdk.Native.Gas.TransferFrom(gasPrice, gasLimit uint64, sender *Account, from, to common.Address, amount uint64) (common.Uint256, error)
 ```
 
 # Contributing
 
-Can I contribute patches to the Ontology project?
+Can I contribute patches to the DNA project?
 
 Yes! We appreciate your help!
 
@@ -451,7 +389,7 @@ wrote the code and have the right to pass it on as an open source patch.
 If you don't sign off your patches, we will not accept them.
 
 You can also send your patches as emails to the developer mailing list.
-Please join the Ontology mailing list or forum and talk to us about it.
+Please join the DNA mailing list or forum and talk to us about it.
 
 Also, please write good git commit messages. A good commit message
 looks like this:
@@ -477,8 +415,8 @@ looks like this:
 
 ## Website
 
-* https://ont.io/
+* https://dna.io/
 
 ## License
 
-The Ontology library (i.e. all of the code outside of the cmd directory) is licensed under the GNU Lesser General Public License v3.0, also included in our repository in the License file.
+The DNA library (i.e. all of the code outside of the cmd directory) is licensed under the GNU Lesser General Public License v3.0, also included in our repository in the License file.

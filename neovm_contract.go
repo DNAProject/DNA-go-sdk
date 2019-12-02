@@ -1,41 +1,33 @@
-package ontology_go_sdk
+package DNA_go_sdk
 
 import (
 	"encoding/hex"
 	"fmt"
-	sdkcom "github.com/ontio/ontology-go-sdk/common"
-	"github.com/ontio/ontology/common"
-	"github.com/ontio/ontology/core/payload"
-	"github.com/ontio/ontology/core/types"
-	httpcom "github.com/ontio/ontology/http/base/common"
 	"time"
+
+	sdkcom "github.com/DNAProject/DNA-go-sdk/common"
+	"github.com/DNAProject/DNA/common"
+	"github.com/DNAProject/DNA/core/payload"
+	"github.com/DNAProject/DNA/core/types"
+	httpcom "github.com/DNAProject/DNA/http/base/common"
 )
 
 type NeoVMContract struct {
-	ontSdk *OntologySdk
+	ontSdk *BlockchainSdk
 }
 
-func newNeoVMContract(ontSdk *OntologySdk) *NeoVMContract {
+func newNeoVMContract(ontSdk *BlockchainSdk) *NeoVMContract {
 	return &NeoVMContract{
 		ontSdk: ontSdk,
 	}
 }
 
-func (this *NeoVMContract) NewDeployNeoVMCodeTransaction(gasPrice, gasLimit uint64, contract *sdkcom.SmartContract) *types.MutableTransaction {
-	deployPayload := &payload.DeployCode{
-		Code:        contract.Code,
-		NeedStorage: contract.NeedStorage,
-		Name:        contract.Name,
-		Version:     contract.Version,
-		Author:      contract.Author,
-		Email:       contract.Email,
-		Description: contract.Description,
-	}
+func (this *NeoVMContract) NewDeployNeoVMCodeTransaction(gasPrice, gasLimit uint64, contract *payload.DeployCode) *types.MutableTransaction {
 	tx := &types.MutableTransaction{
 		Version:  sdkcom.VERSION_TRANSACTION,
 		TxType:   types.Deploy,
 		Nonce:    uint32(time.Now().Unix()),
-		Payload:  deployPayload,
+		Payload:  contract,
 		GasPrice: gasPrice,
 		GasLimit: gasLimit,
 		Sigs:     make([]types.Sig, 0, 0),
@@ -43,7 +35,7 @@ func (this *NeoVMContract) NewDeployNeoVMCodeTransaction(gasPrice, gasLimit uint
 	return tx
 }
 
-//DeploySmartContract Deploy smart contract to ontology
+//DeploySmartContract Deploy smart contract to DNA blockchain
 func (this *NeoVMContract) DeployNeoVMSmartContract(
 	gasPrice,
 	gasLimit uint64,
@@ -60,15 +52,11 @@ func (this *NeoVMContract) DeployNeoVMSmartContract(
 	if err != nil {
 		return common.UINT256_EMPTY, fmt.Errorf("code hex decode error:%s", err)
 	}
-	tx := this.NewDeployNeoVMCodeTransaction(gasPrice, gasLimit, &sdkcom.SmartContract{
-		Code:        invokeCode,
-		NeedStorage: needStorage,
-		Name:        name,
-		Version:     version,
-		Author:      author,
-		Email:       email,
-		Description: desc,
-	})
+	deployCode, err := payload.NewDeployCode(invokeCode, payload.NEOVM_TYPE, name, version, author, email, desc)
+	if err != nil {
+		return common.UINT256_EMPTY, fmt.Errorf("build deployCode err: %s", err)
+	}
+	tx := this.NewDeployNeoVMCodeTransaction(gasPrice, gasLimit, deployCode)
 	err = this.ontSdk.SignToTransaction(tx, singer)
 	if err != nil {
 		return common.Uint256{}, err

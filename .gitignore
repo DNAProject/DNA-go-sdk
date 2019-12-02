@@ -3,3 +3,4 @@ vendor/*
 wallet.dat
 glide.lock
 .idea/
+*.iml

@@ -20,21 +20,22 @@ package oep4
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/ontio/ontology-crypto/keypair"
-	ontology_go_sdk "github.com/ontio/ontology-go-sdk"
-	scomm "github.com/ontio/ontology-go-sdk/common"
-	"github.com/ontio/ontology-go-sdk/utils"
-	"github.com/ontio/ontology/common"
-	"github.com/ontio/ontology/core/types"
 	"math/big"
+
+	sdk "github.com/DNAProject/DNA-go-sdk"
+	scomm "github.com/DNAProject/DNA-go-sdk/common"
+	"github.com/DNAProject/DNA-go-sdk/utils"
+	"github.com/DNAProject/DNA/common"
+	"github.com/DNAProject/DNA/core/types"
+	"github.com/ontio/ontology-crypto/keypair"
 )
 
 type Oep4 struct {
 	ContractAddress common.Address
-	sdk             *ontology_go_sdk.OntologySdk
+	sdk             *sdk.BlockchainSdk
 }
 
-func NewOep4(address common.Address, sdk *ontology_go_sdk.OntologySdk) *Oep4 {
+func NewOep4(address common.Address, sdk *sdk.BlockchainSdk) *Oep4 {
 	return &Oep4{
 		ContractAddress: address,
 		sdk:             sdk,
@@ -86,13 +87,13 @@ func (this *Oep4) BalanceOf(account common.Address) (*big.Int, error) {
 	return preResult.Result.ToInteger()
 }
 
-func (this *Oep4) Transfer(from *ontology_go_sdk.Account, to common.Address, amount *big.Int, gasPrice,
+func (this *Oep4) Transfer(from *sdk.Account, to common.Address, amount *big.Int, gasPrice,
 	gasLimit uint64) (common.Uint256, error) {
 	return this.sdk.NeoVM.InvokeNeoVMContract(gasPrice, gasLimit, from, this.ContractAddress,
 		[]interface{}{"transfer", []interface{}{from.Address, to, amount}})
 }
 
-func (this *Oep4) MultiSignTransfer(fromAccounts []*ontology_go_sdk.Account, m int, to common.Address, amount *big.Int,
+func (this *Oep4) MultiSignTransfer(fromAccounts []*sdk.Account, m int, to common.Address, amount *big.Int,
 	gasPrice, gasLimit uint64) (common.Uint256, error) {
 	pubKeys := make([]keypair.PublicKey, 0)
 	for _, acc := range fromAccounts {
@@ -117,7 +118,7 @@ func (this *Oep4) MultiSignTransfer(fromAccounts []*ontology_go_sdk.Account, m i
 }
 
 // there are no plan to support multi sign of TransferMulti
-func (this *Oep4) TransferMulti(fromAccounts []*ontology_go_sdk.Account, to []common.Address, amount []*big.Int,
+func (this *Oep4) TransferMulti(fromAccounts []*sdk.Account, to []common.Address, amount []*big.Int,
 	gasPrice, gasLimit uint64) (common.Uint256, error) {
 	if len(fromAccounts) != len(to) || len(fromAccounts) != len(amount) || len(to) != len(amount) {
 		return common.UINT256_EMPTY, fmt.Errorf("param invalid")
@@ -144,13 +145,13 @@ func (this *Oep4) TransferMulti(fromAccounts []*ontology_go_sdk.Account, to []co
 	return this.sdk.SendTransaction(mutableTx)
 }
 
-func (this *Oep4) Approve(owner *ontology_go_sdk.Account, spender common.Address, amount *big.Int, gasPrice,
+func (this *Oep4) Approve(owner *sdk.Account, spender common.Address, amount *big.Int, gasPrice,
 	gasLimit uint64) (common.Uint256, error) {
 	return this.sdk.NeoVM.InvokeNeoVMContract(gasPrice, gasLimit, owner, this.ContractAddress,
 		[]interface{}{"approve", []interface{}{owner.Address, spender, amount}})
 }
 
-func (this *Oep4) MultiSignApprove(ownerAccounts []*ontology_go_sdk.Account, m int, spender common.Address,
+func (this *Oep4) MultiSignApprove(ownerAccounts []*sdk.Account, m int, spender common.Address,
 	amount *big.Int, gasPrice, gasLimit uint64) (common.Uint256, error) {
 	pubKeys := make([]keypair.PublicKey, 0)
 	for _, acc := range ownerAccounts {
@@ -174,13 +175,13 @@ func (this *Oep4) MultiSignApprove(ownerAccounts []*ontology_go_sdk.Account, m i
 	return this.sdk.SendTransaction(mutableTx)
 }
 
-func (this *Oep4) TransferFrom(spender *ontology_go_sdk.Account, from, to common.Address, amount *big.Int, gasPrice,
+func (this *Oep4) TransferFrom(spender *sdk.Account, from, to common.Address, amount *big.Int, gasPrice,
 	gasLimit uint64) (common.Uint256, error) {
 	return this.sdk.NeoVM.InvokeNeoVMContract(gasPrice, gasLimit, spender, this.ContractAddress,
 		[]interface{}{"transferFrom", []interface{}{spender.Address, from, to, amount}})
 }
 
-func (this *Oep4) MultiSignTransferFrom(spenders []*ontology_go_sdk.Account, m int, from, to common.Address,
+func (this *Oep4) MultiSignTransferFrom(spenders []*sdk.Account, m int, from, to common.Address,
 	amount *big.Int, gasPrice, gasLimit uint64) (common.Uint256, error) {
 	pubKeys := make([]keypair.PublicKey, 0)
 	for _, acc := range spenders {

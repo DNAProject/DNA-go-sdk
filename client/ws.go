@@ -18,17 +18,18 @@
 package client
 
 import (
-	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	sdkcom "github.com/ontio/ontology-go-sdk/common"
-	"github.com/ontio/ontology-go-sdk/utils"
-	"github.com/ontio/ontology/core/types"
 	"math/rand"
 	"strconv"
 	"sync"
 	"time"
+
+	sdkcom "github.com/DNAProject/DNA-go-sdk/common"
+	"github.com/DNAProject/DNA-go-sdk/utils"
+	"github.com/DNAProject/DNA/common"
+	"github.com/DNAProject/DNA/core/types"
 )
 
 type WSSubscribeStatus struct {
@@ -605,11 +606,8 @@ func (this *WSClient) getRawTransaction(qid, txHash string) ([]byte, error) {
 }
 
 func (this *WSClient) sendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error) {
-	var buffer bytes.Buffer
-	err := tx.Serialize(&buffer)
-	if err != nil {
-		return nil, fmt.Errorf("serialize error:%s", err)
-	}
+	buffer := common.NewZeroCopySink(nil)
+	tx.Serialization(buffer)
 	txData := hex.EncodeToString(buffer.Bytes())
 	params := map[string]interface{}{"Data": txData}
 	if isPreExec {
@@ -675,11 +673,8 @@ func (this *WSClient) GetActionCh() chan *WSAction {
 }
 
 func (this *WSClient) sendAsyncRawTransaction(qid string, tx *types.Transaction, isPreExec bool) (*WSRequest, error) {
-	var buffer bytes.Buffer
-	err := tx.Serialize(&buffer)
-	if err != nil {
-		return nil, fmt.Errorf("serialize error:%s", err)
-	}
+	buffer := common.NewZeroCopySink(nil)
+	tx.Serialization(buffer)
 	txData := hex.EncodeToString(buffer.Bytes())
 	params := map[string]interface{}{"Data": txData}
 	if isPreExec {

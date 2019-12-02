@@ -2,11 +2,12 @@ package client
 
 import (
 	"encoding/json"
-	"github.com/ontio/ontology/core/types"
 	"time"
+
+	"github.com/DNAProject/DNA/core/types"
 )
 
-type OntologyClient interface {
+type DNAClient interface {
 	getCurrentBlockHeight(qid string) ([]byte, error)
 	getCurrentBlockHash(qid string) ([]byte, error)
 	getVersion(qid string) ([]byte, error)

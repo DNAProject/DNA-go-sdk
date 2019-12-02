@@ -1,14 +1,14 @@
-package ontology_go_sdk
+package DNA_go_sdk
 
 import (
 	"crypto/elliptic"
 	"encoding/hex"
 	"fmt"
+	"github.com/DNAProject/DNA/common"
+	"github.com/DNAProject/DNA/core/types"
 	"github.com/ontio/ontology-crypto/ec"
 	"github.com/ontio/ontology-crypto/keypair"
 	s "github.com/ontio/ontology-crypto/signature"
-	"github.com/ontio/ontology/common"
-	"github.com/ontio/ontology/core/types"
 )
 
 type Signer interface {

@@ -1,23 +1,23 @@
-package ontology_go_sdk
+package DNA_go_sdk
 
 import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+
+	sdkcom "github.com/DNAProject/DNA-go-sdk/common"
+	"github.com/DNAProject/DNA-go-sdk/utils"
+	"github.com/DNAProject/DNA/common"
+	"github.com/DNAProject/DNA/common/serialization"
+	"github.com/DNAProject/DNA/core/types"
+	cutils "github.com/DNAProject/DNA/core/utils"
+	"github.com/DNAProject/DNA/smartcontract/service/native/gas"
+	"github.com/DNAProject/DNA/smartcontract/service/native/global_params"
 	"github.com/ontio/ontology-crypto/keypair"
-	sdkcom "github.com/ontio/ontology-go-sdk/common"
-	"github.com/ontio/ontology-go-sdk/utils"
-	"github.com/ontio/ontology/common"
-	"github.com/ontio/ontology/common/serialization"
-	"github.com/ontio/ontology/core/types"
-	cutils "github.com/ontio/ontology/core/utils"
-	"github.com/ontio/ontology/smartcontract/service/native/global_params"
-	"github.com/ontio/ontology/smartcontract/service/native/ont"
 )
 
 var (
-	ONT_CONTRACT_ADDRESS, _           = utils.AddressFromHexString("0100000000000000000000000000000000000000")
-	ONG_CONTRACT_ADDRESS, _           = utils.AddressFromHexString("0200000000000000000000000000000000000000")
+	GAS_CONTRACT_ADDRESS, _           = utils.AddressFromHexString("0200000000000000000000000000000000000000")
 	ONT_ID_CONTRACT_ADDRESS, _        = utils.AddressFromHexString("0300000000000000000000000000000000000000")
 	GLOABL_PARAMS_CONTRACT_ADDRESS, _ = utils.AddressFromHexString("0400000000000000000000000000000000000000")
 	AUTH_CONTRACT_ADDRESS, _          = utils.AddressFromHexString("0600000000000000000000000000000000000000")
@@ -25,9 +25,8 @@ var (
 )
 
 var (
-	ONT_CONTRACT_VERSION           = byte(0)
-	ONG_CONTRACT_VERSION           = byte(0)
-	ONT_ID_CONTRACT_VERSION        = byte(0)
+	GAS_CONTRACT_VERSION           = byte(0)
+	DID_CONTRACT_VERSION           = byte(0)
 	GLOBAL_PARAMS_CONTRACT_VERSION = byte(0)
 	AUTH_CONTRACT_VERSION          = byte(0)
 	GOVERNANCE_CONTRACT_VERSION    = byte(0)
@@ -37,18 +36,16 @@ var OPCODE_IN_PAYLOAD = map[byte]bool{0xc6: true, 0x6b: true, 0x6a: true, 0xc8: 
 	0x7c: true, 0xc1: true}
 
 type NativeContract struct {
-	ontSdk       *OntologySdk
-	Ont          *Ont
-	Ong          *Ong
+	ontSdk       *BlockchainSdk
+	Gas          *Gas
 	OntId        *OntId
 	GlobalParams *GlobalParam
 	Auth         *Auth
 }
 
-func newNativeContract(ontSdk *OntologySdk) *NativeContract {
+func newNativeContract(ontSdk *BlockchainSdk) *NativeContract {
 	native := &NativeContract{ontSdk: ontSdk}
-	native.Ont = &Ont{native: native, ontSdk: ontSdk}
-	native.Ong = &Ong{native: native, ontSdk: ontSdk}
+	native.Gas = &Gas{native: native, ontSdk: ontSdk}
 	native.OntId = &OntId{native: native, ontSdk: ontSdk}
 	native.GlobalParams = &GlobalParam{native: native, ontSdk: ontSdk}
 	native.Auth = &Auth{native: native, ontSdk: ontSdk}
@@ -110,21 +107,21 @@ func (this *NativeContract) PreExecInvokeNativeContract(
 	return this.ontSdk.PreExecTransaction(tx)
 }
 
-type Ont struct {
-	ontSdk *OntologySdk
+type Gas struct {
+	ontSdk *BlockchainSdk
 	native *NativeContract
 }
 
-func (this *Ont) NewTransferTransaction(gasPrice, gasLimit uint64, from, to common.Address, amount uint64) (*types.MutableTransaction, error) {
-	state := &ont.State{
+func (this *Gas) NewTransferTransaction(gasPrice, gasLimit uint64, from, to common.Address, amount uint64) (*types.MutableTransaction, error) {
+	state := &gas.State{
 		From:  from,
 		To:    to,
 		Value: amount,
 	}
-	return this.NewMultiTransferTransaction(gasPrice, gasLimit, []*ont.State{state})
+	return this.NewMultiTransferTransaction(gasPrice, gasLimit, []*gas.State{state})
 }
 
-func (this *Ont) Transfer(gasPrice, gasLimit uint64, from *Account, to common.Address, amount uint64) (common.Uint256, error) {
+func (this *Gas) Transfer(gasPrice, gasLimit uint64, from *Account, to common.Address, amount uint64) (common.Uint256, error) {
 	tx, err := this.NewTransferTransaction(gasPrice, gasLimit, from.Address, to, amount)
 	if err != nil {
 		return common.UINT256_EMPTY, err
@@ -136,17 +133,17 @@ func (this *Ont) Transfer(gasPrice, gasLimit uint64, from *Account, to common.Ad
 	return this.ontSdk.SendTransaction(tx)
 }
 
-func (this *Ont) NewMultiTransferTransaction(gasPrice, gasLimit uint64, states []*ont.State) (*types.MutableTransaction, error) {
+func (this *Gas) NewMultiTransferTransaction(gasPrice, gasLimit uint64, states []*gas.State) (*types.MutableTransaction, error) {
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
 		gasLimit,
-		ONT_CONTRACT_VERSION,
-		ONT_CONTRACT_ADDRESS,
-		ont.TRANSFER_NAME,
+		GAS_CONTRACT_VERSION,
+		GAS_CONTRACT_ADDRESS,
+		gas.TRANSFER_NAME,
 		[]interface{}{states})
 }
 
-func (this *Ont) MultiTransfer(gasPrice, gasLimit uint64, states []*ont.State, signer *Account) (common.Uint256, error) {
+func (this *Gas) MultiTransfer(gasPrice, gasLimit uint64, states []*gas.State, signer *Account) (common.Uint256, error) {
 	tx, err := this.NewMultiTransferTransaction(gasPrice, gasLimit, states)
 	if err != nil {
 		return common.UINT256_EMPTY, err
@@ -158,8 +155,8 @@ func (this *Ont) MultiTransfer(gasPrice, gasLimit uint64, states []*ont.State, s
 	return this.ontSdk.SendTransaction(tx)
 }
 
-func (this *Ont) NewTransferFromTransaction(gasPrice, gasLimit uint64, sender, from, to common.Address, amount uint64) (*types.MutableTransaction, error) {
-	state := &ont.TransferFrom{
+func (this *Gas) NewTransferFromTransaction(gasPrice, gasLimit uint64, sender, from, to common.Address, amount uint64) (*types.MutableTransaction, error) {
+	state := &gas.TransferFrom{
 		Sender: sender,
 		From:   from,
 		To:     to,
@@ -168,14 +165,14 @@ func (this *Ont) NewTransferFromTransaction(gasPrice, gasLimit uint64, sender, f
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
 		gasLimit,
-		ONT_CONTRACT_VERSION,
-		ONT_CONTRACT_ADDRESS,
-		ont.TRANSFERFROM_NAME,
+		GAS_CONTRACT_VERSION,
+		GAS_CONTRACT_ADDRESS,
+		gas.TRANSFERFROM_NAME,
 		[]interface{}{state},
 	)
 }
 
-func (this *Ont) TransferFrom(gasPrice, gasLimit uint64, sender *Account, from, to common.Address, amount uint64) (common.Uint256, error) {
+func (this *Gas) TransferFrom(gasPrice, gasLimit uint64, sender *Account, from, to common.Address, amount uint64) (common.Uint256, error) {
 	tx, err := this.NewTransferFromTransaction(gasPrice, gasLimit, sender.Address, from, to, amount)
 	if err != nil {
 		return common.UINT256_EMPTY, err
@@ -187,8 +184,8 @@ func (this *Ont) TransferFrom(gasPrice, gasLimit uint64, sender *Account, from, 
 	return this.ontSdk.SendTransaction(tx)
 }
 
-func (this *Ont) NewApproveTransaction(gasPrice, gasLimit uint64, from, to common.Address, amount uint64) (*types.MutableTransaction, error) {
-	state := &ont.State{
+func (this *Gas) NewApproveTransaction(gasPrice, gasLimit uint64, from, to common.Address, amount uint64) (*types.MutableTransaction, error) {
+	state := &gas.State{
 		From:  from,
 		To:    to,
 		Value: amount,
@@ -196,14 +193,14 @@ func (this *Ont) NewApproveTransaction(gasPrice, gasLimit uint64, from, to commo
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
 		gasLimit,
-		ONT_CONTRACT_VERSION,
-		ONT_CONTRACT_ADDRESS,
-		ont.APPROVE_NAME,
+		GAS_CONTRACT_VERSION,
+		GAS_CONTRACT_ADDRESS,
+		gas.APPROVE_NAME,
 		[]interface{}{state},
 	)
 }
 
-func (this *Ont) Approve(gasPrice, gasLimit uint64, from *Account, to common.Address, amount uint64) (common.Uint256, error) {
+func (this *Gas) Approve(gasPrice, gasLimit uint64, from *Account, to common.Address, amount uint64) (common.Uint256, error) {
 	tx, err := this.NewApproveTransaction(gasPrice, gasLimit, from.Address, to, amount)
 	if err != nil {
 		return common.UINT256_EMPTY, err
@@ -215,15 +212,15 @@ func (this *Ont) Approve(gasPrice, gasLimit uint64, from *Account, to common.Add
 	return this.ontSdk.SendTransaction(tx)
 }
 
-func (this *Ont) Allowance(from, to common.Address) (uint64, error) {
+func (this *Gas) Allowance(from, to common.Address) (uint64, error) {
 	type allowanceStruct struct {
 		From common.Address
 		To   common.Address
 	}
 	preResult, err := this.native.PreExecInvokeNativeContract(
-		ONT_CONTRACT_ADDRESS,
-		ONT_CONTRACT_VERSION,
-		ont.ALLOWANCE_NAME,
+		GAS_CONTRACT_ADDRESS,
+		GAS_CONTRACT_VERSION,
+		gas.ALLOWANCE_NAME,
 		[]interface{}{&allowanceStruct{From: from, To: to}},
 	)
 	if err != nil {
@@ -236,11 +233,11 @@ func (this *Ont) Allowance(from, to common.Address) (uint64, error) {
 	return balance.Uint64(), nil
 }
 
-func (this *Ont) Symbol() (string, error) {
+func (this *Gas) Symbol() (string, error) {
 	preResult, err := this.native.PreExecInvokeNativeContract(
-		ONT_CONTRACT_ADDRESS,
-		ONT_CONTRACT_VERSION,
-		ont.SYMBOL_NAME,
+		GAS_CONTRACT_ADDRESS,
+		GAS_CONTRACT_VERSION,
+		gas.SYMBOL_NAME,
 		[]interface{}{},
 	)
 	if err != nil {
@@ -249,11 +246,11 @@ func (this *Ont) Symbol() (string, error) {
 	return preResult.Result.ToString()
 }
 
-func (this *Ont) BalanceOf(address common.Address) (uint64, error) {
+func (this *Gas) BalanceOf(address common.Address) (uint64, error) {
 	preResult, err := this.native.PreExecInvokeNativeContract(
-		ONT_CONTRACT_ADDRESS,
-		ONT_CONTRACT_VERSION,
-		ont.BALANCEOF_NAME,
+		GAS_CONTRACT_ADDRESS,
+		GAS_CONTRACT_VERSION,
+		gas.BALANCEOF_NAME,
 		[]interface{}{address[:]},
 	)
 	if err != nil {
@@ -266,11 +263,11 @@ func (this *Ont) BalanceOf(address common.Address) (uint64, error) {
 	return balance.Uint64(), nil
 }
 
-func (this *Ont) Name() (string, error) {
+func (this *Gas) Name() (string, error) {
 	preResult, err := this.native.PreExecInvokeNativeContract(
-		ONT_CONTRACT_ADDRESS,
-		ONT_CONTRACT_VERSION,
-		ont.NAME_NAME,
+		GAS_CONTRACT_ADDRESS,
+		GAS_CONTRACT_VERSION,
+		gas.NAME_NAME,
 		[]interface{}{},
 	)
 	if err != nil {
@@ -279,11 +276,11 @@ func (this *Ont) Name() (string, error) {
 	return preResult.Result.ToString()
 }
 
-func (this *Ont) Decimals() (byte, error) {
+func (this *Gas) Decimals() (byte, error) {
 	preResult, err := this.native.PreExecInvokeNativeContract(
-		ONT_CONTRACT_ADDRESS,
-		ONT_CONTRACT_VERSION,
-		ont.DECIMALS_NAME,
+		GAS_CONTRACT_ADDRESS,
+		GAS_CONTRACT_VERSION,
+		gas.DECIMALS_NAME,
 		[]interface{}{},
 	)
 	if err != nil {
@@ -296,234 +293,11 @@ func (this *Ont) Decimals() (byte, error) {
 	return byte(decimals.Uint64()), nil
 }
 
-func (this *Ont) TotalSupply() (uint64, error) {
+func (this *Gas) TotalSupply() (uint64, error) {
 	preResult, err := this.native.PreExecInvokeNativeContract(
-		ONT_CONTRACT_ADDRESS,
-		ONT_CONTRACT_VERSION,
-		ont.TOTAL_SUPPLY_NAME,
-		[]interface{}{},
-	)
-	if err != nil {
-		return 0, err
-	}
-	balance, err := preResult.Result.ToInteger()
-	if err != nil {
-		return 0, err
-	}
-	return balance.Uint64(), nil
-}
-
-type Ong struct {
-	ontSdk *OntologySdk
-	native *NativeContract
-}
-
-func (this *Ong) NewTransferTransaction(gasPrice, gasLimit uint64, from, to common.Address, amount uint64) (*types.MutableTransaction, error) {
-	state := &ont.State{
-		From:  from,
-		To:    to,
-		Value: amount,
-	}
-	return this.NewMultiTransferTransaction(gasPrice, gasLimit, []*ont.State{state})
-}
-
-func (this *Ong) Transfer(gasPrice, gasLimit uint64, from *Account, to common.Address, amount uint64) (common.Uint256, error) {
-	tx, err := this.NewTransferTransaction(gasPrice, gasLimit, from.Address, to, amount)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	err = this.ontSdk.SignToTransaction(tx, from)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	return this.ontSdk.SendTransaction(tx)
-}
-
-func (this *Ong) NewMultiTransferTransaction(gasPrice, gasLimit uint64, states []*ont.State) (*types.MutableTransaction, error) {
-	return this.native.NewNativeInvokeTransaction(
-		gasPrice,
-		gasLimit,
-		ONG_CONTRACT_VERSION,
-		ONG_CONTRACT_ADDRESS,
-		ont.TRANSFER_NAME,
-		[]interface{}{states})
-}
-
-func (this *Ong) MultiTransfer(gasPrice, gasLimit uint64, states []*ont.State, signer *Account) (common.Uint256, error) {
-	tx, err := this.NewMultiTransferTransaction(gasPrice, gasLimit, states)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	return this.ontSdk.SendTransaction(tx)
-}
-
-func (this *Ong) NewTransferFromTransaction(gasPrice, gasLimit uint64, sender, from, to common.Address, amount uint64) (*types.MutableTransaction, error) {
-	state := &ont.TransferFrom{
-		Sender: sender,
-		From:   from,
-		To:     to,
-		Value:  amount,
-	}
-	return this.native.NewNativeInvokeTransaction(
-		gasPrice,
-		gasLimit,
-		ONG_CONTRACT_VERSION,
-		ONG_CONTRACT_ADDRESS,
-		ont.TRANSFERFROM_NAME,
-		[]interface{}{state},
-	)
-}
-
-func (this *Ong) TransferFrom(gasPrice, gasLimit uint64, sender *Account, from, to common.Address, amount uint64) (common.Uint256, error) {
-	tx, err := this.NewTransferFromTransaction(gasPrice, gasLimit, sender.Address, from, to, amount)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	err = this.ontSdk.SignToTransaction(tx, sender)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	return this.ontSdk.SendTransaction(tx)
-}
-
-func (this *Ong) NewWithdrawONGTransaction(gasPrice, gasLimit uint64, address common.Address, amount uint64) (*types.MutableTransaction, error) {
-	return this.NewTransferFromTransaction(gasPrice, gasLimit, address, ONT_CONTRACT_ADDRESS, address, amount)
-}
-
-func (this *Ong) WithdrawONG(gasPrice, gasLimit uint64, address *Account, amount uint64) (common.Uint256, error) {
-	tx, err := this.NewWithdrawONGTransaction(gasPrice, gasLimit, address.Address, amount)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	err = this.ontSdk.SignToTransaction(tx, address)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	return this.ontSdk.SendTransaction(tx)
-}
-
-func (this *Ong) NewApproveTransaction(gasPrice, gasLimit uint64, from, to common.Address, amount uint64) (*types.MutableTransaction, error) {
-	state := &ont.State{
-		From:  from,
-		To:    to,
-		Value: amount,
-	}
-	return this.native.NewNativeInvokeTransaction(
-		gasPrice,
-		gasLimit,
-		ONG_CONTRACT_VERSION,
-		ONG_CONTRACT_ADDRESS,
-		ont.APPROVE_NAME,
-		[]interface{}{state},
-	)
-}
-
-func (this *Ong) Approve(gasPrice, gasLimit uint64, from *Account, to common.Address, amount uint64) (common.Uint256, error) {
-	tx, err := this.NewApproveTransaction(gasPrice, gasLimit, from.Address, to, amount)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	err = this.ontSdk.SignToTransaction(tx, from)
-	if err != nil {
-		return common.UINT256_EMPTY, err
-	}
-	return this.ontSdk.SendTransaction(tx)
-}
-
-func (this *Ong) Allowance(from, to common.Address) (uint64, error) {
-	type allowanceStruct struct {
-		From common.Address
-		To   common.Address
-	}
-	preResult, err := this.native.PreExecInvokeNativeContract(
-		ONG_CONTRACT_ADDRESS,
-		ONG_CONTRACT_VERSION,
-		ont.ALLOWANCE_NAME,
-		[]interface{}{&allowanceStruct{From: from, To: to}},
-	)
-	if err != nil {
-		return 0, err
-	}
-	balance, err := preResult.Result.ToInteger()
-	if err != nil {
-		return 0, err
-	}
-	return balance.Uint64(), nil
-}
-
-func (this *Ong) UnboundONG(address common.Address) (uint64, error) {
-	return this.Allowance(ONT_CONTRACT_ADDRESS, address)
-}
-
-func (this *Ong) Symbol() (string, error) {
-	preResult, err := this.native.PreExecInvokeNativeContract(
-		ONG_CONTRACT_ADDRESS,
-		ONG_CONTRACT_VERSION,
-		ont.SYMBOL_NAME,
-		[]interface{}{},
-	)
-	if err != nil {
-		return "", err
-	}
-	return preResult.Result.ToString()
-}
-
-func (this *Ong) BalanceOf(address common.Address) (uint64, error) {
-	preResult, err := this.native.PreExecInvokeNativeContract(
-		ONG_CONTRACT_ADDRESS,
-		ONG_CONTRACT_VERSION,
-		ont.BALANCEOF_NAME,
-		[]interface{}{address[:]},
-	)
-	if err != nil {
-		return 0, err
-	}
-	balance, err := preResult.Result.ToInteger()
-	if err != nil {
-		return 0, err
-	}
-	return balance.Uint64(), nil
-}
-
-func (this *Ong) Name() (string, error) {
-	preResult, err := this.native.PreExecInvokeNativeContract(
-		ONG_CONTRACT_ADDRESS,
-		ONG_CONTRACT_VERSION,
-		ont.NAME_NAME,
-		[]interface{}{},
-	)
-	if err != nil {
-		return "", err
-	}
-	return preResult.Result.ToString()
-}
-
-func (this *Ong) Decimals() (byte, error) {
-	preResult, err := this.native.PreExecInvokeNativeContract(
-		ONG_CONTRACT_ADDRESS,
-		ONG_CONTRACT_VERSION,
-		ont.DECIMALS_NAME,
-		[]interface{}{},
-	)
-	if err != nil {
-		return 0, err
-	}
-	decimals, err := preResult.Result.ToInteger()
-	if err != nil {
-		return 0, err
-	}
-	return byte(decimals.Uint64()), nil
-}
-
-func (this *Ong) TotalSupply() (uint64, error) {
-	preResult, err := this.native.PreExecInvokeNativeContract(
-		ONG_CONTRACT_ADDRESS,
-		ONG_CONTRACT_VERSION,
-		ont.TOTAL_SUPPLY_NAME,
+		GAS_CONTRACT_ADDRESS,
+		GAS_CONTRACT_VERSION,
+		gas.TOTAL_SUPPLY_NAME,
 		[]interface{}{},
 	)
 	if err != nil {
@@ -537,7 +311,7 @@ func (this *Ong) TotalSupply() (uint64, error) {
 }
 
 type OntId struct {
-	ontSdk *OntologySdk
+	ontSdk *BlockchainSdk
 	native *NativeContract
 }
 
@@ -549,7 +323,7 @@ func (this *OntId) NewRegIDWithPublicKeyTransaction(gasPrice, gasLimit uint64, o
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
 		gasLimit,
-		ONT_ID_CONTRACT_VERSION,
+		DID_CONTRACT_VERSION,
 		ONT_ID_CONTRACT_ADDRESS,
 		"regIDWithPublicKey",
 		[]interface{}{
@@ -586,7 +360,7 @@ func (this *OntId) NewRegIDWithAttributesTransaction(gasPrice, gasLimit uint64, 
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
 		gasLimit,
-		ONT_ID_CONTRACT_VERSION,
+		DID_CONTRACT_VERSION,
 		ONT_ID_CONTRACT_ADDRESS,
 		"regIDWithAttributes",
 		[]interface{}{
@@ -618,7 +392,7 @@ func (this *OntId) RegIDWithAttributes(gasPrice, gasLimit uint64, signer *Accoun
 func (this *OntId) GetDDO(ontId string) (*DDO, error) {
 	result, err := this.native.PreExecInvokeNativeContract(
 		ONT_ID_CONTRACT_ADDRESS,
-		ONT_ID_CONTRACT_VERSION,
+		DID_CONTRACT_VERSION,
 		"getDDO",
 		[]interface{}{ontId},
 	)
@@ -674,7 +448,7 @@ func (this *OntId) NewAddKeyTransaction(gasPrice, gasLimit uint64, ontId string,
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
 		gasLimit,
-		ONT_ID_CONTRACT_VERSION,
+		DID_CONTRACT_VERSION,
 		ONT_ID_CONTRACT_ADDRESS,
 		"addKey",
 		[]interface{}{
@@ -711,7 +485,7 @@ func (this *OntId) NewRevokeKeyTransaction(gasPrice, gasLimit uint64, ontId stri
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
 		gasLimit,
-		ONT_ID_CONTRACT_VERSION,
+		DID_CONTRACT_VERSION,
 		ONT_ID_CONTRACT_ADDRESS,
 		"removeKey",
 		[]interface{}{
@@ -749,7 +523,7 @@ func (this *OntId) NewSetRecoveryTransaction(gasPrice, gasLimit uint64, ontId st
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
 		gasLimit,
-		ONT_ID_CONTRACT_VERSION,
+		DID_CONTRACT_VERSION,
 		ONT_ID_CONTRACT_ADDRESS,
 		"addRecovery",
 		[]interface{}{
@@ -786,7 +560,7 @@ func (this *OntId) NewChangeRecoveryTransaction(gasPrice, gasLimit uint64, ontId
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
 		gasLimit,
-		ONT_ID_CONTRACT_VERSION,
+		DID_CONTRACT_VERSION,
 		ONT_ID_CONTRACT_ADDRESS,
 		"changeRecovery",
 		[]interface{}{
@@ -823,7 +597,7 @@ func (this *OntId) NewAddAttributesTransaction(gasPrice, gasLimit uint64, ontId 
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
 		gasLimit,
-		ONT_ID_CONTRACT_VERSION,
+		DID_CONTRACT_VERSION,
 		ONT_ID_CONTRACT_ADDRESS,
 		"addAttributes",
 		[]interface{}{
@@ -861,7 +635,7 @@ func (this *OntId) NewRemoveAttributeTransaction(gasPrice, gasLimit uint64, ontI
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
 		gasLimit,
-		ONT_ID_CONTRACT_VERSION,
+		DID_CONTRACT_VERSION,
 		ONT_ID_CONTRACT_ADDRESS,
 		"removeAttribute",
 		[]interface{}{
@@ -893,7 +667,7 @@ func (this *OntId) RemoveAttribute(gasPrice, gasLimit uint64, signer *Account, o
 func (this *OntId) GetAttributes(ontId string) ([]*DDOAttribute, error) {
 	preResult, err := this.native.PreExecInvokeNativeContract(
 		ONT_ID_CONTRACT_ADDRESS,
-		ONT_ID_CONTRACT_VERSION,
+		DID_CONTRACT_VERSION,
 		"getAttributes",
 		[]interface{}{ontId})
 	if err != nil {
@@ -941,7 +715,7 @@ func (this *OntId) getAttributes(ontId string, data []byte) ([]*DDOAttribute, er
 func (this *OntId) VerifySignature(ontId string, keyIndex int, controller *Controller) (bool, error) {
 	tx, err := this.native.NewNativeInvokeTransaction(
 		0, 0,
-		ONT_ID_CONTRACT_VERSION,
+		DID_CONTRACT_VERSION,
 		ONT_ID_CONTRACT_ADDRESS,
 		"verifySignature",
 		[]interface{}{ontId, keyIndex})
@@ -962,7 +736,7 @@ func (this *OntId) VerifySignature(ontId string, keyIndex int, controller *Contr
 func (this *OntId) GetPublicKeys(ontId string) ([]*DDOOwner, error) {
 	preResult, err := this.native.PreExecInvokeNativeContract(
 		ONT_ID_CONTRACT_ADDRESS,
-		ONT_ID_CONTRACT_VERSION,
+		DID_CONTRACT_VERSION,
 		"getPublicKeys",
 		[]interface{}{
 			ontId,
@@ -1017,7 +791,7 @@ func (this *OntId) GetKeyState(ontId string, keyIndex int) (string, error) {
 	}
 	preResult, err := this.native.PreExecInvokeNativeContract(
 		ONT_ID_CONTRACT_ADDRESS,
-		ONT_ID_CONTRACT_VERSION,
+		DID_CONTRACT_VERSION,
 		"getKeyState",
 		[]interface{}{
 			&keyState{
@@ -1032,7 +806,7 @@ func (this *OntId) GetKeyState(ontId string, keyIndex int) (string, error) {
 }
 
 type GlobalParam struct {
-	ontSdk *OntologySdk
+	ontSdk *BlockchainSdk
 	native *NativeContract
 }
 
@@ -1050,7 +824,7 @@ func (this *GlobalParam) GetGlobalParams(params []string) (map[string]string, er
 		return nil, err
 	}
 	queryParams := new(global_params.Params)
-	err = queryParams.Deserialize(bytes.NewBuffer(results))
+	err = queryParams.Deserialization(common.NewZeroCopySource(results))
 	if err != nil {
 		return nil, err
 	}
@@ -1182,7 +956,7 @@ func (this *GlobalParam) CreateSnapshot(gasPrice, gasLimit uint64, signer *Accou
 }
 
 type Auth struct {
-	ontSdk *OntologySdk
+	ontSdk *BlockchainSdk
 	native *NativeContract
 }
 

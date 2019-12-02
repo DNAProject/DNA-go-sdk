@@ -16,45 +16,45 @@
  * along with The ontology.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//Ontolog sdk in golang. Using for operation with ontology
-package ontology_go_sdk
+//DNA sdk in golang. Using for operation with DNA blockchain
+package DNA_go_sdk
 
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/ontio/go-bip32"
-	"github.com/ontio/ontology-go-sdk/bip44"
-	"github.com/ontio/ontology/smartcontract/event"
-	"github.com/tyler-smith/go-bip39"
 	"io"
 	"math/rand"
 	"time"
 
+	"github.com/DNAProject/DNA-go-sdk/bip44"
+	"github.com/DNAProject/DNA-go-sdk/client"
+	common3 "github.com/DNAProject/DNA-go-sdk/common"
+	"github.com/DNAProject/DNA-go-sdk/utils"
+	"github.com/DNAProject/DNA/common"
+	common2 "github.com/DNAProject/DNA/common"
+	"github.com/DNAProject/DNA/common/constants"
+	"github.com/DNAProject/DNA/core/payload"
+	"github.com/DNAProject/DNA/core/types"
+	"github.com/DNAProject/DNA/smartcontract/event"
+	"github.com/ontio/go-bip32"
 	"github.com/ontio/ontology-crypto/keypair"
-	"github.com/ontio/ontology-go-sdk/client"
-	common3 "github.com/ontio/ontology-go-sdk/common"
-	"github.com/ontio/ontology-go-sdk/utils"
-	"github.com/ontio/ontology/common"
-	common2 "github.com/ontio/ontology/common"
-	"github.com/ontio/ontology/common/constants"
-	"github.com/ontio/ontology/core/payload"
-	"github.com/ontio/ontology/core/types"
+	"github.com/tyler-smith/go-bip39"
 )
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-//OntologySdk is the main struct for user
-type OntologySdk struct {
+//BlockchainSdk is the main struct for user
+type BlockchainSdk struct {
 	client.ClientMgr
 	Native *NativeContract
 	NeoVM  *NeoVMContract
 }
 
-//NewOntologySdk return OntologySdk.
-func NewOntologySdk() *OntologySdk {
-	ontSdk := &OntologySdk{}
+//NewBlockchainSdk return BlockchainSdk.
+func NewBlockchainSdk() *BlockchainSdk {
+	ontSdk := &BlockchainSdk{}
 	native := newNativeContract(ontSdk)
 	ontSdk.Native = native
 	neoVM := newNeoVMContract(ontSdk)
@@ -63,7 +63,7 @@ func NewOntologySdk() *OntologySdk {
 }
 
 //CreateWallet return a new wallet
-func (this *OntologySdk) CreateWallet(walletFile string) (*Wallet, error) {
+func (this *BlockchainSdk) CreateWallet(walletFile string) (*Wallet, error) {
 	if utils.IsFileExist(walletFile) {
 		return nil, fmt.Errorf("wallet:%s has already exist", walletFile)
 	}
@@ -71,7 +71,7 @@ func (this *OntologySdk) CreateWallet(walletFile string) (*Wallet, error) {
 }
 
 //OpenWallet return a wallet instance
-func (this *OntologySdk) OpenWallet(walletFile string) (*Wallet, error) {
+func (this *BlockchainSdk) OpenWallet(walletFile string) (*Wallet, error) {
 	return OpenWallet(walletFile)
 }
 
@@ -90,15 +90,15 @@ func ParseNativeTxPayload(raw []byte) (map[string]interface{}, error) {
 
 func ParsePayload(code []byte) (map[string]interface{}, error) {
 	l := len(code)
-	if l > 44 && string(code[l-22:]) == "Ontology.Native.Invoke" {
-		//46 = 22  "Ontology.Native.Invoke"
+	if l > 44 && string(code[l-20:]) == "System.Native.Invoke" {
+		//44 = 20  "System.Native.Invoke"
 		// +1   length
 		// +1   SYSCALL
 		// +1   version
 		// +20  address
 		// +1   length
 		//TODO if version>15, there will be bug
-		if l > 54 && string(code[l-46-8:l-46]) == "transfer" {
+		if l > 52 && string(code[l-44-8:l-44]) == "transfer" {
 			param := make([]common3.StateInfo, 0)
 			source := common.NewZeroCopySource(code)
 			for {
@@ -169,13 +169,11 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 			res["functionName"] = "transfer"
 			res["contractAddress"] = contractAddress
 			res["param"] = param
-			if contractAddress == ONT_CONTRACT_ADDRESS {
-				res["asset"] = "ont"
-			} else if contractAddress == ONG_CONTRACT_ADDRESS {
-				res["asset"] = "ong"
+			if contractAddress == GAS_CONTRACT_ADDRESS {
+				res["asset"] = "gas"
 			}
 			return res, nil
-		} else if l > 58 && string(code[l-46-12:l-46]) == "transferFrom" {
+		} else if l > 56 && string(code[l-44-12:l-44]) == "transferFrom" {
 			source := common.NewZeroCopySource(code)
 			//ignore 00
 			_, eof := source.NextByte()
@@ -238,10 +236,8 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 			res["functionName"] = "transferFrom"
 			res["contractAddress"] = contractAddress
 			res["param"] = tf
-			if contractAddress == ONT_CONTRACT_ADDRESS {
-				res["asset"] = "ont"
-			} else if contractAddress == ONG_CONTRACT_ADDRESS {
-				res["asset"] = "ong"
+			if contractAddress == GAS_CONTRACT_ADDRESS {
+				res["asset"] = "gas"
 			}
 			return res, nil
 		}
@@ -324,7 +320,7 @@ func ignoreOpCode(source *common.ZeroCopySource) error {
 	}
 }
 
-func (this *OntologySdk) GenerateMnemonicCodesStr() (string, error) {
+func (this *BlockchainSdk) GenerateMnemonicCodesStr() (string, error) {
 	entropy, err := bip39.NewEntropy(128)
 	if err != nil {
 		return "", err
@@ -332,7 +328,7 @@ func (this *OntologySdk) GenerateMnemonicCodesStr() (string, error) {
 	return bip39.NewMnemonic(entropy)
 }
 
-func (this *OntologySdk) GetPrivateKeyFromMnemonicCodesStrBip44(mnemonicCodesStr string, index uint32) ([]byte, error) {
+func (this *BlockchainSdk) GetPrivateKeyFromMnemonicCodesStrBip44(mnemonicCodesStr string, index uint32) ([]byte, error) {
 	if mnemonicCodesStr == "" {
 		return nil, fmt.Errorf("mnemonicCodesStr should not be nil")
 	}
@@ -362,14 +358,14 @@ func (this *OntologySdk) GetPrivateKeyFromMnemonicCodesStrBip44(mnemonicCodesStr
 }
 
 //NewInvokeTransaction return smart contract invoke transaction
-func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeCode []byte) *types.MutableTransaction {
+func (this *BlockchainSdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeCode []byte) *types.MutableTransaction {
 	invokePayload := &payload.InvokeCode{
 		Code: invokeCode,
 	}
 	tx := &types.MutableTransaction{
 		GasPrice: gasPrice,
 		GasLimit: gasLimit,
-		TxType:   types.Invoke,
+		TxType:   types.InvokeNeo,
 		Nonce:    rand.Uint32(),
 		Payload:  invokePayload,
 		Sigs:     make([]types.Sig, 0, 0),
@@ -377,7 +373,7 @@ func (this *OntologySdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeC
 	return tx
 }
 
-func (this *OntologySdk) SignToTransaction(tx *types.MutableTransaction, signer Signer) error {
+func (this *BlockchainSdk) SignToTransaction(tx *types.MutableTransaction, signer Signer) error {
 	if tx.Payer == common.ADDRESS_EMPTY {
 		account, ok := signer.(*Account)
 		if ok {
@@ -406,7 +402,7 @@ func (this *OntologySdk) SignToTransaction(tx *types.MutableTransaction, signer 
 	return nil
 }
 
-func (this *OntologySdk) MultiSignToTransaction(tx *types.MutableTransaction, m uint16, pubKeys []keypair.PublicKey, signer Signer) error {
+func (this *BlockchainSdk) MultiSignToTransaction(tx *types.MutableTransaction, m uint16, pubKeys []keypair.PublicKey, signer Signer) error {
 	pkSize := len(pubKeys)
 	if m == 0 || int(m) > pkSize || pkSize > constants.MULTI_SIG_MAX_PUBKEY_SIZE {
 		return fmt.Errorf("both m and number of pub key must larger than 0, and small than %d, and m must smaller than pub key number", constants.MULTI_SIG_MAX_PUBKEY_SIZE)
@@ -458,7 +454,7 @@ func (this *OntologySdk) MultiSignToTransaction(tx *types.MutableTransaction, m 
 	return nil
 }
 
-func (this *OntologySdk) GetTxData(tx *types.MutableTransaction) (string, error) {
+func (this *BlockchainSdk) GetTxData(tx *types.MutableTransaction) (string, error) {
 	txData, err := tx.IntoImmutable()
 	if err != nil {
 		return "", fmt.Errorf("IntoImmutable error:%s", err)
@@ -476,7 +472,7 @@ type TransferEvent struct {
 	Amount   uint64
 }
 
-func (this *OntologySdk) ParseNaitveTransferEvent(event *event.NotifyEventInfo) (*TransferEvent, error) {
+func (this *BlockchainSdk) ParseNaitveTransferEvent(event *event.NotifyEventInfo) (*TransferEvent, error) {
 	if event == nil {
 		return nil, fmt.Errorf("event is nil")
 	}
@@ -515,7 +511,7 @@ func (this *OntologySdk) ParseNaitveTransferEvent(event *event.NotifyEventInfo) 
 	}
 }
 
-func (this *OntologySdk) GetMutableTx(rawTx string) (*types.MutableTransaction, error) {
+func (this *BlockchainSdk) GetMutableTx(rawTx string) (*types.MutableTransaction, error) {
 	txData, err := hex.DecodeString(rawTx)
 	if err != nil {
 		return nil, fmt.Errorf("RawTx hex decode error:%s", err)
@@ -531,7 +527,7 @@ func (this *OntologySdk) GetMutableTx(rawTx string) (*types.MutableTransaction, 
 	return mutTx, nil
 }
 
-func (this *OntologySdk) GetMultiAddr(pubkeys []keypair.PublicKey, m int) (string, error) {
+func (this *BlockchainSdk) GetMultiAddr(pubkeys []keypair.PublicKey, m int) (string, error) {
 	addr, err := types.AddressFromMultiPubKeys(pubkeys, m)
 	if err != nil {
 		return "", fmt.Errorf("GetMultiAddrs error:%s", err)
@@ -539,7 +535,7 @@ func (this *OntologySdk) GetMultiAddr(pubkeys []keypair.PublicKey, m int) (strin
 	return addr.ToBase58(), nil
 }
 
-func (this *OntologySdk) GetAdddrByPubKey(pubKey keypair.PublicKey) string {
+func (this *BlockchainSdk) GetAdddrByPubKey(pubKey keypair.PublicKey) string {
 	address := types.AddressFromPubKey(pubKey)
 	return address.ToBase58()
 }

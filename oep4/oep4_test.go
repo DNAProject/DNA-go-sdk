@@ -18,10 +18,10 @@
 package oep4
 
 import (
+	sdk "github.com/DNAProject/DNA-go-sdk"
+	"github.com/DNAProject/DNA-go-sdk/utils"
+	"github.com/DNAProject/DNA/core/types"
 	"github.com/ontio/ontology-crypto/keypair"
-	ontology_go_sdk "github.com/ontio/ontology-go-sdk"
-	"github.com/ontio/ontology-go-sdk/utils"
-	"github.com/ontio/ontology/core/types"
 	"math/big"
 	"testing"
 	"time"
@@ -34,7 +34,7 @@ func TestOep4(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ontSdk := ontology_go_sdk.NewOntologySdk()
+	ontSdk := sdk.NewBlockchainSdk()
 	ontSdk.NewRpcClient().SetAddress("http://polaris1.ont.io:20336")
 	oep4 := NewOep4(contractAddr, ontSdk)
 	name, err := oep4.Name()
@@ -90,7 +90,7 @@ func TestOep4(t *testing.T) {
 	}
 	t.Logf("transferTx %s: from %s to multi-sign addr %s, amount %d", transferTx.ToHexString(),
 		acc.Address.ToBase58(), multiSignAddr.ToBase58(), amount)
-	accounts := []*ontology_go_sdk.Account{acc, anotherAccount}
+	accounts := []*sdk.Account{acc, anotherAccount}
 	transferMultiSignTx, err := oep4.MultiSignTransfer(accounts, m, acc.Address, amount, gasPrice, gasLimit)
 	if err != nil {
 		t.Fatal(err)

@@ -22,17 +22,19 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/ontio/ontology-go-sdk/utils"
-	"github.com/ontio/ontology/core/types"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/DNAProject/DNA-go-sdk/utils"
+	"github.com/DNAProject/DNA/common"
+	"github.com/DNAProject/DNA/core/types"
 )
 
-//RpcClient for ontology rpc api
+//RpcClient for DNA blockchain rpc api
 type RestClient struct {
 	addr       string
 	httpClient *http.Client
@@ -176,11 +178,8 @@ func (this *RestClient) getBlockTxHashesByHeight(qid string, height uint32) ([]b
 
 func (this *RestClient) sendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error) {
 	reqPath := POST_RAW_TX
-	var buffer bytes.Buffer
-	err := tx.Serialize(&buffer)
-	if err != nil {
-		return nil, fmt.Errorf("Serialize error:%s", err)
-	}
+	buffer := common.NewZeroCopySink(nil)
+	tx.Serialization(buffer)
 	var reqValues *url.Values
 	if isPreExec {
 		reqValues = &url.Values{}

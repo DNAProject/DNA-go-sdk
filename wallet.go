@@ -1,14 +1,14 @@
-package ontology_go_sdk
+package DNA_go_sdk
 
 import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/DNAProject/DNA/common"
+	"github.com/DNAProject/DNA/core/types"
 	"github.com/ontio/ontology-crypto/keypair"
 	s "github.com/ontio/ontology-crypto/signature"
-	"github.com/ontio/ontology/common"
-	"github.com/ontio/ontology/core/types"
 	"io/ioutil"
 	"os"
 	"sync"
@@ -34,7 +34,7 @@ type Wallet struct {
 	identityLabelMap map[string]*Identity
 	defIdentity      *Identity
 	path             string
-	ontSdk           *OntologySdk
+	ontSdk           *BlockchainSdk
 	lock             sync.RWMutex
 }
 
