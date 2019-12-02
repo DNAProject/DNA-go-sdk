@@ -302,6 +302,8 @@ func TestBlockchainSdk_CreateWallet(t *testing.T) {
 }
 
 func TestNewBlockchainSdk(t *testing.T) {
+	Init()
+
 	testOntSdk = NewBlockchainSdk()
 	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
 	event := &event.NotifyEventInfo{
@@ -314,12 +316,11 @@ func TestNewBlockchainSdk(t *testing.T) {
 }
 
 func TestBlockchainSdk_GetTxData(t *testing.T) {
+	Init()
+
 	testOntSdk = NewBlockchainSdk()
 	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
-	if testWallet == nil {
-		return
-	}
-	acc, _ := testWallet.GetAccountByAddress("AVBzcUtgdgS94SpBmw4rDMhYA4KDq1YTzy", testPasswd)
+	acc, _ := testWallet.GetDefaultAccount(testPasswd)
 	tx, _ := testOntSdk.Native.Gas.NewTransferTransaction(500, 10000, acc.Address, acc.Address, 100)
 	testOntSdk.SignToTransaction(tx, acc)
 	tx2, _ := tx.IntoImmutable()
@@ -332,7 +333,7 @@ func TestBlockchainSdk_GetTxData(t *testing.T) {
 
 func Init() {
 	testOntSdk = NewBlockchainSdk()
-	testOntSdk.NewRpcClient().SetAddress("http://polaris.ont.io:20336")
+	testOntSdk.NewRpcClient().SetAddress("http://localhost:20336")
 
 	var err error
 	var wallet *Wallet
@@ -375,11 +376,10 @@ func Init() {
 }
 
 func TestOnt_Transfer(t *testing.T) {
+	Init()
+
 	testOntSdk = NewBlockchainSdk()
 	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
-	if testWallet == nil {
-		return
-	}
 	txHash, err := testOntSdk.Native.Gas.Transfer(testGasPrice, testGasLimit, testDefAcc, testDefAcc.Address, 1)
 	if err != nil {
 		t.Errorf("NewTransferTransaction error:%s", err)
