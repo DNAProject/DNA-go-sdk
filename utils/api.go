@@ -159,8 +159,9 @@ func GetSmartContract(data []byte) (*payload.DeployCode, error) {
 	if err != nil {
 		return nil, fmt.Errorf("hex.DecodeString error:%s", err)
 	}
+	source := common.NewZeroCopySource(hexData)
 	deploy := &payload.DeployCode{}
-	err = deploy.Deserialization(common.NewZeroCopySource(hexData))
+	err = deploy.Deserialization(source)
 	if err != nil {
 		return nil, err
 	}

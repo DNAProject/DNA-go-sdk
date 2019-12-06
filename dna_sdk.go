@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
-// Copyright 2019 the DNA Dev team
+// Copyright 2019 DNA Dev team
 //
 /*
  * Copyright (C) 2018 The ontology Authors
@@ -19,17 +19,20 @@
  * along with The ontology.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//DNA sdk in golang. Using for operation with DNA blockchain
+//DNA sdk in golang. Using for operation with ontology
 package DNA_go_sdk
 
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/DNAProject/DNA-go-sdk/bip44"
+	"github.com/DNAProject/DNA/smartcontract/event"
+	"github.com/ontio/go-bip32"
+	"github.com/tyler-smith/go-bip39"
 	"io"
 	"math/rand"
 	"time"
 
-	"github.com/DNAProject/DNA-go-sdk/bip44"
 	"github.com/DNAProject/DNA-go-sdk/client"
 	common3 "github.com/DNAProject/DNA-go-sdk/common"
 	"github.com/DNAProject/DNA-go-sdk/utils"
@@ -38,35 +41,32 @@ import (
 	"github.com/DNAProject/DNA/common/constants"
 	"github.com/DNAProject/DNA/core/payload"
 	"github.com/DNAProject/DNA/core/types"
-	"github.com/DNAProject/DNA/smartcontract/event"
-	"github.com/ontio/go-bip32"
 	"github.com/ontio/ontology-crypto/keypair"
-	"github.com/tyler-smith/go-bip39"
 )
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-//BlockchainSdk is the main struct for user
-type BlockchainSdk struct {
+//DNASdk is the main struct for user
+type DNASdk struct {
 	client.ClientMgr
 	Native *NativeContract
 	NeoVM  *NeoVMContract
 }
 
-//NewBlockchainSdk return BlockchainSdk.
-func NewBlockchainSdk() *BlockchainSdk {
-	ontSdk := &BlockchainSdk{}
-	native := newNativeContract(ontSdk)
-	ontSdk.Native = native
-	neoVM := newNeoVMContract(ontSdk)
-	ontSdk.NeoVM = neoVM
-	return ontSdk
+//NewDNASdk return DNASdk.
+func NewDNASdk() *DNASdk {
+	dnaSdk := &DNASdk{}
+	native := newNativeContract(dnaSdk)
+	dnaSdk.Native = native
+	neoVM := newNeoVMContract(dnaSdk)
+	dnaSdk.NeoVM = neoVM
+	return dnaSdk
 }
 
 //CreateWallet return a new wallet
-func (this *BlockchainSdk) CreateWallet(walletFile string) (*Wallet, error) {
+func (this *DNASdk) CreateWallet(walletFile string) (*Wallet, error) {
 	if utils.IsFileExist(walletFile) {
 		return nil, fmt.Errorf("wallet:%s has already exist", walletFile)
 	}
@@ -74,7 +74,7 @@ func (this *BlockchainSdk) CreateWallet(walletFile string) (*Wallet, error) {
 }
 
 //OpenWallet return a wallet instance
-func (this *BlockchainSdk) OpenWallet(walletFile string) (*Wallet, error) {
+func (this *DNASdk) OpenWallet(walletFile string) (*Wallet, error) {
 	return OpenWallet(walletFile)
 }
 
@@ -93,15 +93,15 @@ func ParseNativeTxPayload(raw []byte) (map[string]interface{}, error) {
 
 func ParsePayload(code []byte) (map[string]interface{}, error) {
 	l := len(code)
-	if l > 44 && string(code[l-20:]) == "System.Native.Invoke" {
-		//44 = 20  "System.Native.Invoke"
+	if l > 44 && string(code[l-22:]) == "System.Native.Invoke" {
+		//46 = 22  "System.Native.Invoke"
 		// +1   length
 		// +1   SYSCALL
 		// +1   version
 		// +20  address
 		// +1   length
 		//TODO if version>15, there will be bug
-		if l > 52 && string(code[l-44-8:l-44]) == "transfer" {
+		if l > 54 && string(code[l-46-8:l-46]) == "transfer" {
 			param := make([]common3.StateInfo, 0)
 			source := common.NewZeroCopySource(code)
 			for {
@@ -176,7 +176,7 @@ func ParsePayload(code []byte) (map[string]interface{}, error) {
 				res["asset"] = "gas"
 			}
 			return res, nil
-		} else if l > 56 && string(code[l-44-12:l-44]) == "transferFrom" {
+		} else if l > 58 && string(code[l-46-12:l-46]) == "transferFrom" {
 			source := common.NewZeroCopySource(code)
 			//ignore 00
 			_, eof := source.NextByte()
@@ -323,7 +323,7 @@ func ignoreOpCode(source *common.ZeroCopySource) error {
 	}
 }
 
-func (this *BlockchainSdk) GenerateMnemonicCodesStr() (string, error) {
+func (this *DNASdk) GenerateMnemonicCodesStr() (string, error) {
 	entropy, err := bip39.NewEntropy(128)
 	if err != nil {
 		return "", err
@@ -331,7 +331,7 @@ func (this *BlockchainSdk) GenerateMnemonicCodesStr() (string, error) {
 	return bip39.NewMnemonic(entropy)
 }
 
-func (this *BlockchainSdk) GetPrivateKeyFromMnemonicCodesStrBip44(mnemonicCodesStr string, index uint32) ([]byte, error) {
+func (this *DNASdk) GetPrivateKeyFromMnemonicCodesStrBip44(mnemonicCodesStr string, index uint32) ([]byte, error) {
 	if mnemonicCodesStr == "" {
 		return nil, fmt.Errorf("mnemonicCodesStr should not be nil")
 	}
@@ -361,7 +361,7 @@ func (this *BlockchainSdk) GetPrivateKeyFromMnemonicCodesStrBip44(mnemonicCodesS
 }
 
 //NewInvokeTransaction return smart contract invoke transaction
-func (this *BlockchainSdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeCode []byte) *types.MutableTransaction {
+func (this *DNASdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invokeCode []byte) *types.MutableTransaction {
 	invokePayload := &payload.InvokeCode{
 		Code: invokeCode,
 	}
@@ -376,7 +376,7 @@ func (this *BlockchainSdk) NewInvokeTransaction(gasPrice, gasLimit uint64, invok
 	return tx
 }
 
-func (this *BlockchainSdk) SignToTransaction(tx *types.MutableTransaction, signer Signer) error {
+func (this *DNASdk) SignToTransaction(tx *types.MutableTransaction, signer Signer) error {
 	if tx.Payer == common.ADDRESS_EMPTY {
 		account, ok := signer.(*Account)
 		if ok {
@@ -405,7 +405,7 @@ func (this *BlockchainSdk) SignToTransaction(tx *types.MutableTransaction, signe
 	return nil
 }
 
-func (this *BlockchainSdk) MultiSignToTransaction(tx *types.MutableTransaction, m uint16, pubKeys []keypair.PublicKey, signer Signer) error {
+func (this *DNASdk) MultiSignToTransaction(tx *types.MutableTransaction, m uint16, pubKeys []keypair.PublicKey, signer Signer) error {
 	pkSize := len(pubKeys)
 	if m == 0 || int(m) > pkSize || pkSize > constants.MULTI_SIG_MAX_PUBKEY_SIZE {
 		return fmt.Errorf("both m and number of pub key must larger than 0, and small than %d, and m must smaller than pub key number", constants.MULTI_SIG_MAX_PUBKEY_SIZE)
@@ -457,7 +457,7 @@ func (this *BlockchainSdk) MultiSignToTransaction(tx *types.MutableTransaction, 
 	return nil
 }
 
-func (this *BlockchainSdk) GetTxData(tx *types.MutableTransaction) (string, error) {
+func (this *DNASdk) GetTxData(tx *types.MutableTransaction) (string, error) {
 	txData, err := tx.IntoImmutable()
 	if err != nil {
 		return "", fmt.Errorf("IntoImmutable error:%s", err)
@@ -475,7 +475,7 @@ type TransferEvent struct {
 	Amount   uint64
 }
 
-func (this *BlockchainSdk) ParseNaitveTransferEvent(event *event.NotifyEventInfo) (*TransferEvent, error) {
+func (this *DNASdk) ParseNaitveTransferEvent(event *event.NotifyEventInfo) (*TransferEvent, error) {
 	if event == nil {
 		return nil, fmt.Errorf("event is nil")
 	}
@@ -514,7 +514,7 @@ func (this *BlockchainSdk) ParseNaitveTransferEvent(event *event.NotifyEventInfo
 	}
 }
 
-func (this *BlockchainSdk) GetMutableTx(rawTx string) (*types.MutableTransaction, error) {
+func (this *DNASdk) GetMutableTx(rawTx string) (*types.MutableTransaction, error) {
 	txData, err := hex.DecodeString(rawTx)
 	if err != nil {
 		return nil, fmt.Errorf("RawTx hex decode error:%s", err)
@@ -525,12 +525,12 @@ func (this *BlockchainSdk) GetMutableTx(rawTx string) (*types.MutableTransaction
 	}
 	mutTx, err := tx.IntoMutable()
 	if err != nil {
-		return nil, fmt.Errorf("[ONT]IntoMutable error:%s", err)
+		return nil, fmt.Errorf("IntoMutable error:%s", err)
 	}
 	return mutTx, nil
 }
 
-func (this *BlockchainSdk) GetMultiAddr(pubkeys []keypair.PublicKey, m int) (string, error) {
+func (this *DNASdk) GetMultiAddr(pubkeys []keypair.PublicKey, m int) (string, error) {
 	addr, err := types.AddressFromMultiPubKeys(pubkeys, m)
 	if err != nil {
 		return "", fmt.Errorf("GetMultiAddrs error:%s", err)
@@ -538,7 +538,7 @@ func (this *BlockchainSdk) GetMultiAddr(pubkeys []keypair.PublicKey, m int) (str
 	return addr.ToBase58(), nil
 }
 
-func (this *BlockchainSdk) GetAdddrByPubKey(pubKey keypair.PublicKey) string {
+func (this *DNASdk) GetAdddrByPubKey(pubKey keypair.PublicKey) string {
 	address := types.AddressFromPubKey(pubKey)
 	return address.ToBase58()
 }

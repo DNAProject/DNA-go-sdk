@@ -17,12 +17,12 @@ import (
 )
 
 type NeoVMContract struct {
-	ontSdk *BlockchainSdk
+	dnaSkd *DNASdk
 }
 
-func newNeoVMContract(ontSdk *BlockchainSdk) *NeoVMContract {
+func newNeoVMContract(dnaSkd *DNASdk) *NeoVMContract {
 	return &NeoVMContract{
-		ontSdk: ontSdk,
+		dnaSkd: dnaSkd,
 	}
 }
 
@@ -39,7 +39,7 @@ func (this *NeoVMContract) NewDeployNeoVMCodeTransaction(gasPrice, gasLimit uint
 	return tx
 }
 
-//DeploySmartContract Deploy smart contract to DNA blockchain
+//DeploySmartContract Deploy smart contract to dna
 func (this *NeoVMContract) DeployNeoVMSmartContract(
 	gasPrice,
 	gasLimit uint64,
@@ -61,11 +61,11 @@ func (this *NeoVMContract) DeployNeoVMSmartContract(
 		return common.UINT256_EMPTY, fmt.Errorf("build deployCode err: %s", err)
 	}
 	tx := this.NewDeployNeoVMCodeTransaction(gasPrice, gasLimit, deployCode)
-	err = this.ontSdk.SignToTransaction(tx, singer)
+	err = this.dnaSkd.SignToTransaction(tx, singer)
 	if err != nil {
 		return common.Uint256{}, err
 	}
-	txHash, err := this.ontSdk.SendTransaction(tx)
+	txHash, err := this.dnaSkd.SendTransaction(tx)
 	if err != nil {
 		return common.Uint256{}, fmt.Errorf("SendRawTransaction error:%s", err)
 	}
@@ -82,7 +82,7 @@ func (this *NeoVMContract) NewNeoVMInvokeTransaction(
 	if err != nil {
 		return nil, err
 	}
-	return this.ontSdk.NewInvokeTransaction(gasPrice, gasLimit, invokeCode), nil
+	return this.dnaSkd.NewInvokeTransaction(gasPrice, gasLimit, invokeCode), nil
 }
 
 func (this *NeoVMContract) InvokeNeoVMContract(
@@ -95,11 +95,11 @@ func (this *NeoVMContract) InvokeNeoVMContract(
 	if err != nil {
 		return common.UINT256_EMPTY, fmt.Errorf("NewNeoVMInvokeTransaction error:%s", err)
 	}
-	err = this.ontSdk.SignToTransaction(tx, signer)
+	err = this.dnaSkd.SignToTransaction(tx, signer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	return this.ontSdk.SendTransaction(tx)
+	return this.dnaSkd.SendTransaction(tx)
 }
 
 func (this *NeoVMContract) PreExecInvokeNeoVMContract(
@@ -109,5 +109,5 @@ func (this *NeoVMContract) PreExecInvokeNeoVMContract(
 	if err != nil {
 		return nil, err
 	}
-	return this.ontSdk.PreExecTransaction(tx)
+	return this.dnaSkd.PreExecTransaction(tx)
 }

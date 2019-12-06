@@ -8,6 +8,7 @@ import (
 	"crypto/elliptic"
 	"encoding/hex"
 	"fmt"
+
 	"github.com/DNAProject/DNA/common"
 	"github.com/DNAProject/DNA/core/types"
 	"github.com/ontio/ontology-crypto/ec"

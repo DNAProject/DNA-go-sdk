@@ -16,9 +16,9 @@ import (
 )
 
 type ClientMgr struct {
-	rpc       *RpcClient  //Rpc client used the rpc api
-	rest      *RestClient //Rest client used the rest api
-	ws        *WSClient   //Web socket client used the web socket api
+	rpc       *RpcClient  //Rpc client used the rpc api of dna
+	rest      *RestClient //Rest client used the rest api of dna
+	ws        *WSClient   //Web socket client used the web socket api of dna
 	defClient DNAClient
 	qid       uint64
 }
@@ -58,7 +58,7 @@ func (this *ClientMgr) SetDefaultClient(client DNAClient) {
 func (this *ClientMgr) GetCurrentBlockHeight() (uint32, error) {
 	client := this.getClient()
 	if client == nil {
-		return 0, fmt.Errorf("don't have available DNA blockchain client")
+		return 0, fmt.Errorf("don't have available client of dna")
 	}
 	data, err := client.getCurrentBlockHeight(this.getNextQid())
 	if err != nil {
@@ -70,7 +70,7 @@ func (this *ClientMgr) GetCurrentBlockHeight() (uint32, error) {
 func (this *ClientMgr) GetCurrentBlockHash() (common.Uint256, error) {
 	client := this.getClient()
 	if client == nil {
-		return common.UINT256_EMPTY, fmt.Errorf("don't have available DNA blockchain client")
+		return common.UINT256_EMPTY, fmt.Errorf("don't have available client of dna")
 	}
 	data, err := client.getCurrentBlockHash(this.getNextQid())
 	if err != nil {
@@ -82,7 +82,7 @@ func (this *ClientMgr) GetCurrentBlockHash() (common.Uint256, error) {
 func (this *ClientMgr) GetBlockByHeight(height uint32) (*types.Block, error) {
 	client := this.getClient()
 	if client == nil {
-		return nil, fmt.Errorf("don't have available DNA blockchain client")
+		return nil, fmt.Errorf("don't have available client of dna")
 	}
 	data, err := client.getBlockByHeight(this.getNextQid(), height)
 	if err != nil {
@@ -94,7 +94,7 @@ func (this *ClientMgr) GetBlockByHeight(height uint32) (*types.Block, error) {
 func (this *ClientMgr) GetBlockInfoByHeight(height uint32) ([]byte, error) {
 	client := this.getClient()
 	if client == nil {
-		return nil, fmt.Errorf("don't have available DNA blockchain client")
+		return nil, fmt.Errorf("don't have available client of dna")
 	}
 	data, err := client.getBlockInfoByHeight(this.getNextQid(), height)
 	if err != nil {
@@ -106,7 +106,7 @@ func (this *ClientMgr) GetBlockInfoByHeight(height uint32) ([]byte, error) {
 func (this *ClientMgr) GetBlockByHash(blockHash string) (*types.Block, error) {
 	client := this.getClient()
 	if client == nil {
-		return nil, fmt.Errorf("don't have available DNA blockchain client")
+		return nil, fmt.Errorf("don't have available client of dna")
 	}
 	data, err := client.getBlockByHash(this.getNextQid(), blockHash)
 	if err != nil {
@@ -118,7 +118,7 @@ func (this *ClientMgr) GetBlockByHash(blockHash string) (*types.Block, error) {
 func (this *ClientMgr) GetTransaction(txHash string) (*types.Transaction, error) {
 	client := this.getClient()
 	if client == nil {
-		return nil, fmt.Errorf("don't have available DNA blockchain client")
+		return nil, fmt.Errorf("don't have available client of dna")
 	}
 	data, err := client.getRawTransaction(this.getNextQid(), txHash)
 	if err != nil {
@@ -130,7 +130,7 @@ func (this *ClientMgr) GetTransaction(txHash string) (*types.Transaction, error)
 func (this *ClientMgr) GetBlockHash(height uint32) (common.Uint256, error) {
 	client := this.getClient()
 	if client == nil {
-		return common.UINT256_EMPTY, fmt.Errorf("don't have available DNA blockchain client")
+		return common.UINT256_EMPTY, fmt.Errorf("don't have available client of dna")
 	}
 	data, err := client.getBlockHash(this.getNextQid(), height)
 	if err != nil {
@@ -142,7 +142,7 @@ func (this *ClientMgr) GetBlockHash(height uint32) (common.Uint256, error) {
 func (this *ClientMgr) GetBlockHeightByTxHash(txHash string) (uint32, error) {
 	client := this.getClient()
 	if client == nil {
-		return 0, fmt.Errorf("don't have available DNA blockchain client")
+		return 0, fmt.Errorf("don't have available client of dna")
 	}
 	data, err := client.getBlockHeightByTxHash(this.getNextQid(), txHash)
 	if err != nil {
@@ -154,7 +154,7 @@ func (this *ClientMgr) GetBlockHeightByTxHash(txHash string) (uint32, error) {
 func (this *ClientMgr) GetBlockTxHashesByHeight(height uint32) (*sdkcom.BlockTxHashes, error) {
 	client := this.getClient()
 	if client == nil {
-		return nil, fmt.Errorf("don't have available DNA blockchain client")
+		return nil, fmt.Errorf("don't have available client of dna")
 	}
 	data, err := client.getBlockTxHashesByHeight(this.getNextQid(), height)
 	if err != nil {
@@ -166,7 +166,7 @@ func (this *ClientMgr) GetBlockTxHashesByHeight(height uint32) (*sdkcom.BlockTxH
 func (this *ClientMgr) GetStorage(contractAddress string, key []byte) ([]byte, error) {
 	client := this.getClient()
 	if client == nil {
-		return nil, fmt.Errorf("don't have available DNA blockchain client")
+		return nil, fmt.Errorf("don't have available client of dna")
 	}
 	data, err := client.getStorage(this.getNextQid(), contractAddress, key)
 	if err != nil {
@@ -178,7 +178,7 @@ func (this *ClientMgr) GetStorage(contractAddress string, key []byte) ([]byte, e
 func (this *ClientMgr) GetSmartContract(contractAddress string) (*sdkcom.SmartContract, error) {
 	client := this.getClient()
 	if client == nil {
-		return nil, fmt.Errorf("don't have available DNA blockchain client")
+		return nil, fmt.Errorf("don't have available client of dna")
 	}
 	data, err := client.getSmartContract(this.getNextQid(), contractAddress)
 	if err != nil {
@@ -195,7 +195,7 @@ func (this *ClientMgr) GetSmartContract(contractAddress string) (*sdkcom.SmartCo
 func (this *ClientMgr) GetSmartContractEvent(txHash string) (*sdkcom.SmartContactEvent, error) {
 	client := this.getClient()
 	if client == nil {
-		return nil, fmt.Errorf("don't have available DNA blockchain client")
+		return nil, fmt.Errorf("don't have available client of dna")
 	}
 	data, err := client.getSmartContractEvent(this.getNextQid(), txHash)
 	if err != nil {
@@ -207,7 +207,7 @@ func (this *ClientMgr) GetSmartContractEvent(txHash string) (*sdkcom.SmartContac
 func (this *ClientMgr) GetSmartContractEventByBlock(height uint32) ([]*sdkcom.SmartContactEvent, error) {
 	client := this.getClient()
 	if client == nil {
-		return nil, fmt.Errorf("don't have available DNA blockchain client")
+		return nil, fmt.Errorf("don't have available client of dna")
 	}
 	data, err := client.getSmartContractEventByBlock(this.getNextQid(), height)
 	if err != nil {
@@ -219,7 +219,7 @@ func (this *ClientMgr) GetSmartContractEventByBlock(height uint32) ([]*sdkcom.Sm
 func (this *ClientMgr) GetMerkleProof(txHash string) (*sdkcom.MerkleProof, error) {
 	client := this.getClient()
 	if client == nil {
-		return nil, fmt.Errorf("don't have available DNA blockchain client")
+		return nil, fmt.Errorf("don't have available client of dna")
 	}
 	data, err := client.getMerkleProof(this.getNextQid(), txHash)
 	if err != nil {
@@ -231,7 +231,7 @@ func (this *ClientMgr) GetMerkleProof(txHash string) (*sdkcom.MerkleProof, error
 func (this *ClientMgr) GetMemPoolTxState(txHash string) (*sdkcom.MemPoolTxState, error) {
 	client := this.getClient()
 	if client == nil {
-		return nil, fmt.Errorf("don't have available DNA blockchain client")
+		return nil, fmt.Errorf("don't have available client of dna")
 	}
 	data, err := client.getMemPoolTxState(this.getNextQid(), txHash)
 	if err != nil {
@@ -243,7 +243,7 @@ func (this *ClientMgr) GetMemPoolTxState(txHash string) (*sdkcom.MemPoolTxState,
 func (this *ClientMgr) GetMemPoolTxCount() (*sdkcom.MemPoolTxCount, error) {
 	client := this.getClient()
 	if client == nil {
-		return nil, fmt.Errorf("don't have available DNA blockchain client")
+		return nil, fmt.Errorf("don't have available client of dna")
 	}
 	data, err := client.getMemPoolTxCount(this.getNextQid())
 	if err != nil {
@@ -255,7 +255,7 @@ func (this *ClientMgr) GetMemPoolTxCount() (*sdkcom.MemPoolTxCount, error) {
 func (this *ClientMgr) GetVersion() (string, error) {
 	client := this.getClient()
 	if client == nil {
-		return "", fmt.Errorf("don't have available DNA blockchain client")
+		return "", fmt.Errorf("don't have available client of dna")
 	}
 	data, err := client.getVersion(this.getNextQid())
 	if err != nil {
@@ -267,7 +267,7 @@ func (this *ClientMgr) GetVersion() (string, error) {
 func (this *ClientMgr) GetNetworkId() (uint32, error) {
 	client := this.getClient()
 	if client == nil {
-		return 0, fmt.Errorf("don't have available DNA blockchain client")
+		return 0, fmt.Errorf("don't have available client of dna")
 	}
 	data, err := client.getNetworkId(this.getNextQid())
 	if err != nil {
@@ -279,7 +279,7 @@ func (this *ClientMgr) GetNetworkId() (uint32, error) {
 func (this *ClientMgr) SendTransaction(mutTx *types.MutableTransaction) (common.Uint256, error) {
 	client := this.getClient()
 	if client == nil {
-		return common.UINT256_EMPTY, fmt.Errorf("don't have available DNA blockchain client")
+		return common.UINT256_EMPTY, fmt.Errorf("don't have available client of dna")
 	}
 	tx, err := mutTx.IntoImmutable()
 	if err != nil {
@@ -295,7 +295,7 @@ func (this *ClientMgr) SendTransaction(mutTx *types.MutableTransaction) (common.
 func (this *ClientMgr) PreExecTransaction(mutTx *types.MutableTransaction) (*sdkcom.PreExecResult, error) {
 	client := this.getClient()
 	if client == nil {
-		return nil, fmt.Errorf("don't have available DNA blockchain client")
+		return nil, fmt.Errorf("don't have available client of dna")
 	}
 	tx, err := mutTx.IntoImmutable()
 	if err != nil {
@@ -313,7 +313,7 @@ func (this *ClientMgr) PreExecTransaction(mutTx *types.MutableTransaction) (*sdk
 	return preResult, nil
 }
 
-//WaitForGenerateBlock Wait DNA blockchain generate block. Default wait 2 blocks.
+//WaitForGenerateBlock Wait dna generate block. Default wait 2 blocks.
 //return timeout error when there is no block generate in some time.
 func (this *ClientMgr) WaitForGenerateBlock(timeout time.Duration, blockCount ...uint32) (bool, error) {
 	count := uint32(2)

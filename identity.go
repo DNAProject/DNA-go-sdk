@@ -20,7 +20,7 @@ import (
 
 const (
 	SCHEME = "did"
-	METHOD = "dna"
+	METHOD = "ont"
 	VER    = 0x41
 )
 

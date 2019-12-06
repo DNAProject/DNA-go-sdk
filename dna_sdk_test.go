@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
-// Copyright 2019 the DNA Dev team
+// Copyright 2019 DNA Dev team
 //
 /*
  * Copyright (C) 2018 The ontology Authors
@@ -24,12 +24,7 @@ package DNA_go_sdk
 import (
 	"encoding/hex"
 	"fmt"
-	"math/rand"
-	"strconv"
-	"testing"
-	"time"
-
-	common2 "github.com/DNAProject/DNA-go-sdk/common"
+	sdkComm "github.com/DNAProject/DNA-go-sdk/common"
 	"github.com/DNAProject/DNA/common"
 	"github.com/DNAProject/DNA/core/payload"
 	"github.com/DNAProject/DNA/core/utils"
@@ -39,11 +34,14 @@ import (
 	"github.com/ontio/ontology-crypto/signature"
 	"github.com/stretchr/testify/assert"
 	"github.com/tyler-smith/go-bip39"
-	"os"
+	"math/rand"
+	"strconv"
+	"testing"
+	"time"
 )
 
 var (
-	testOntSdk   *BlockchainSdk
+	testDnaSdk   *DNASdk
 	testWallet   *Wallet
 	testPasswd   = []byte("123456")
 	testDefAcc   *Account
@@ -52,13 +50,14 @@ var (
 )
 
 func TestOntId_NewRegIDWithAttributesTransaction(t *testing.T) {
-	testOntSdk = NewBlockchainSdk()
+	testDnaSdk = NewDNASdk()
 }
 func TestParseNativeTxPayload(t *testing.T) {
-	testOntSdk = NewBlockchainSdk()
+	testDnaSdk = NewDNASdk()
 	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
 	assert.Nil(t, err)
 	acc, err := NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
+	assert.Nil(t, err)
 	state := &gas.State{
 		From:  acc.Address,
 		To:    acc.Address,
@@ -68,14 +67,30 @@ func TestParseNativeTxPayload(t *testing.T) {
 	for i := 0; i < 1; i++ {
 		transfers = append(transfers, state)
 	}
-	_, err = testOntSdk.Native.Gas.NewMultiTransferTransaction(500, 20000, transfers)
+	_, err = testDnaSdk.Native.Gas.NewMultiTransferTransaction(500, 20000, transfers)
 	assert.Nil(t, err)
-	_, err = testOntSdk.Native.Gas.NewTransferFromTransaction(500, 20000, acc.Address, acc.Address, acc.Address, 20)
+	_, err = testDnaSdk.Native.Gas.NewTransferFromTransaction(500, 20000, acc.Address, acc.Address, acc.Address, 20)
+	assert.Nil(t, err)
+}
+
+func TestParsePayload(t *testing.T) {
+	testDnaSdk = NewDNASdk()
+	//transferMulti
+	payloadHex := "00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c0114c1087472616e736665721400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+	//one transfer
+	payloadHex = "00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0164c86c51c1087472616e736665721400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+
+	//one transferFrom
+	payloadHex = "00c66b6a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a14d2c124dd088190f709b684e0bc676d70c41b3776c86a0114c86c0c7472616e7366657246726f6d1400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+
+	payloadBytes, err := common.HexToBytes(payloadHex)
+	assert.Nil(t, err)
+	_, err = ParsePayload(payloadBytes)
 	assert.Nil(t, err)
 }
 
 func TestParsePayloadRandom(t *testing.T) {
-	testOntSdk = NewBlockchainSdk()
+	testDnaSdk = NewDNASdk()
 	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
 	assert.Nil(t, err)
 	acc, err := NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
@@ -97,7 +112,7 @@ func TestParsePayloadRandom(t *testing.T) {
 			fmt.Println(res["param"])
 			return
 		} else {
-			stateInfos := res["param"].([]common2.StateInfo)
+			stateInfos := res["param"].([]sdkComm.StateInfo)
 			assert.Equal(t, uint64(amount), stateInfos[0].Value)
 		}
 		tr := gas.TransferFrom{
@@ -114,13 +129,13 @@ func TestParsePayloadRandom(t *testing.T) {
 			fmt.Println(res["param"])
 			return
 		} else {
-			stateInfos := res["param"].(common2.TransferFromInfo)
+			stateInfos := res["param"].(sdkComm.TransferFromInfo)
 			assert.Equal(t, uint64(amount), stateInfos.Value)
 		}
 	}
 }
 func TestParsePayloadRandomMulti(t *testing.T) {
-	testOntSdk = NewBlockchainSdk()
+	testDnaSdk = NewDNASdk()
 	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
 	assert.Nil(t, err)
 	acc, err := NewAccountFromPrivateKey(pri, signature.SHA256withECDSA)
@@ -150,7 +165,7 @@ func TestParsePayloadRandomMulti(t *testing.T) {
 			fmt.Println("invokeCode:", common.ToHexString(invokeCode))
 			return
 		} else {
-			stateInfos := res["param"].([]common2.StateInfo)
+			stateInfos := res["param"].([]sdkComm.StateInfo)
 			for i := 0; i < paramLen; i++ {
 				assert.Equal(t, uint64(amount), stateInfos[i].Value)
 			}
@@ -158,9 +173,43 @@ func TestParsePayloadRandomMulti(t *testing.T) {
 	}
 }
 
+func TestDNASdk_TrabsferFrom(t *testing.T) {
+	testDnaSdk = NewDNASdk()
+	payloadHex := "00c66b1421ab6ece5c9e44fa5e35261ef42cc6bc31d98e9c6a7cc814c1d2d106f9d2276b383958973b9fca8e4f48cc966a7cc80400e1f5056a7cc86c51c1087472616e736665721400000000000000000000000000000000000000020068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+	payloadBytes, err := common.HexToBytes(payloadHex)
+	assert.Nil(t, err)
+	res, err := ParsePayload(payloadBytes)
+	assert.Nil(t, err)
+	fmt.Println("res:", res)
+
+	//java sdk,  transferFrom
+	//amount =100
+	payloadHex = "00c66b14d2c124dd088190f709b684e0bc676d70c41b37766a7cc8149018fbdfe16d5b1054165ab892b0e040919bd1ca6a7cc8143e7c40c2a2a98e3f95adace19b12ef4a1d7a35066a7cc801646a7cc86c0c7472616e7366657246726f6d1400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+	//amount =10
+	//payloadHex = "00c66b14d2c124dd088190f709b684e0bc676d70c41b37766a7cc8149018fbdfe16d5b1054165ab892b0e040919bd1ca6a7cc8143e7c40c2a2a98e3f95adace19b12ef4a1d7a35066a7cc85a6a7cc86c0c7472616e7366657246726f6d1400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+
+	//amount = 1000000000
+	payloadHex = "00c66b14d2c124dd088190f709b684e0bc676d70c41b37766a7cc8149018fbdfe16d5b1054165ab892b0e040919bd1ca6a7cc8143e7c40c2a2a98e3f95adace19b12ef4a1d7a35066a7cc80400ca9a3b6a7cc86c0c7472616e7366657246726f6d1400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+
+	//java sdk, transfer
+	//amount = 100
+	payloadHex = "00c66b14d2c124dd088190f709b684e0bc676d70c41b37766a7cc814d2c124dd088190f709b684e0bc676d70c41b37766a7cc801646a7cc86c51c1087472616e736665721400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+
+	//amount = 10
+	payloadHex = "00c66b14d2c124dd088190f709b684e0bc676d70c41b37766a7cc814d2c124dd088190f709b684e0bc676d70c41b37766a7cc85a6a7cc86c51c1087472616e736665721400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+	//amount = 1000000000
+	payloadHex = "00c66b14d2c124dd088190f709b684e0bc676d70c41b37766a7cc814d2c124dd088190f709b684e0bc676d70c41b37766a7cc80400ca9a3b6a7cc86c51c1087472616e736665721400000000000000000000000000000000000000010068164f6e746f6c6f67792e4e61746976652e496e766f6b65"
+
+	payloadBytes, err = common.HexToBytes(payloadHex)
+	assert.Nil(t, err)
+	res, err = ParsePayload(payloadBytes)
+	assert.Nil(t, err)
+	fmt.Println("res:", res)
+}
+
 //transferFrom
-func TestBlockchainSdk_ParseNativeTxPayload2(t *testing.T) {
-	testOntSdk = NewBlockchainSdk()
+func TestDNASdk_ParseNativeTxPayload2(t *testing.T) {
+	testDnaSdk = NewDNASdk()
 	var err error
 	assert.Nil(t, err)
 	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
@@ -177,7 +226,7 @@ func TestBlockchainSdk_ParseNativeTxPayload2(t *testing.T) {
 
 	acc3, err := NewAccountFromPrivateKey(pri3, signature.SHA256withECDSA)
 	amount := 1000000000
-	txFrom, err := testOntSdk.Native.Gas.NewTransferFromTransaction(500, 20000, acc.Address, acc2.Address, acc3.Address, uint64(amount))
+	txFrom, err := testDnaSdk.Native.Gas.NewTransferFromTransaction(500, 20000, acc.Address, acc2.Address, acc3.Address, uint64(amount))
 	assert.Nil(t, err)
 	tx, err := txFrom.IntoImmutable()
 	assert.Nil(t, err)
@@ -186,11 +235,14 @@ func TestBlockchainSdk_ParseNativeTxPayload2(t *testing.T) {
 	code := invokeCode.Code
 	res, err := ParsePayload(code)
 	assert.Nil(t, err)
+	assert.Equal(t, acc.Address.ToBase58(), res["sender"].(string))
+	assert.Equal(t, acc2.Address.ToBase58(), res["from"].(string))
+	assert.Equal(t, uint64(amount), res["amount"].(uint64))
 	assert.Equal(t, "transferFrom", res["functionName"].(string))
 	fmt.Println("res:", res)
 }
-func TestBlockchainSdk_ParseNativeTxPayload(t *testing.T) {
-	testOntSdk = NewBlockchainSdk()
+func TestDNASdk_ParseNativeTxPayload(t *testing.T) {
+	testDnaSdk = NewDNASdk()
 	var err error
 	assert.Nil(t, err)
 	pri, err := common.HexToBytes("75de8489fcb2dcaf2ef3cd607feffde18789de7da129b5e97c81e001793cb7cf")
@@ -212,7 +264,7 @@ func TestBlockchainSdk_ParseNativeTxPayload(t *testing.T) {
 	assert.Nil(t, err)
 
 	amount := uint64(1000000000)
-	tx, err := testOntSdk.Native.Gas.NewTransferTransaction(500, 20000, acc.Address, acc2.Address, amount)
+	tx, err := testDnaSdk.Native.Gas.NewTransferTransaction(500, 20000, acc.Address, acc2.Address, amount)
 	assert.Nil(t, err)
 
 	tx2, err := tx.IntoImmutable()
@@ -220,29 +272,36 @@ func TestBlockchainSdk_ParseNativeTxPayload(t *testing.T) {
 	res, err := ParseNativeTxPayload(tx2.ToArray())
 	assert.Nil(t, err)
 	fmt.Println("res:", res)
+	assert.Equal(t, acc.Address.ToBase58(), res["from"].(string))
+	assert.Equal(t, acc2.Address.ToBase58(), res["to"].(string))
+	assert.Equal(t, amount, res["amount"].(uint64))
 	assert.Equal(t, "transfer", res["functionName"].(string))
 
-	transferFrom, err := testOntSdk.Native.Gas.NewTransferFromTransaction(500, 20000, acc.Address, acc2.Address, acc3.Address, 10)
+	transferFrom, err := testDnaSdk.Native.Gas.NewTransferFromTransaction(500, 20000, acc.Address, acc2.Address, acc3.Address, 10)
+	assert.Nil(t, err)
 	transferFrom2, err := transferFrom.IntoImmutable()
 	r, err := ParseNativeTxPayload(transferFrom2.ToArray())
 	assert.Nil(t, err)
 	fmt.Println("res:", r)
-	assert.Equal(t, "transfer", res["functionName"].(string))
+	assert.Equal(t, r["sender"], acc.Address.ToBase58())
+	assert.Equal(t, r["from"], acc2.Address.ToBase58())
+	assert.Equal(t, r["to"], acc3.Address.ToBase58())
+	assert.Equal(t, r["amount"], uint64(10))
 
-	ongTransfer, err := testOntSdk.Native.Gas.NewTransferTransaction(uint64(500), uint64(20000), acc.Address, acc2.Address, 100000000)
+	gasTransfer, err := testDnaSdk.Native.Gas.NewTransferTransaction(uint64(500), uint64(20000), acc.Address, acc2.Address, 100000000)
 	assert.Nil(t, err)
-	ongTx, err := ongTransfer.IntoImmutable()
+	gasTx, err := gasTransfer.IntoImmutable()
 	assert.Nil(t, err)
-	res, err = ParseNativeTxPayload(ongTx.ToArray())
+	res, err = ParseNativeTxPayload(gasTx.ToArray())
 	assert.Nil(t, err)
 	fmt.Println("res:", res)
 }
 
-func TestBlockchainSdk_GenerateMnemonicCodesStr2(t *testing.T) {
+func TestDNASdk_GenerateMnemonicCodesStr2(t *testing.T) {
 	mnemonic := make(map[string]bool)
-	testOntSdk := NewBlockchainSdk()
+	testDnaSdk := NewDNASdk()
 	for i := 0; i < 100000; i++ {
-		mnemonicStr, err := testOntSdk.GenerateMnemonicCodesStr()
+		mnemonicStr, err := testDnaSdk.GenerateMnemonicCodesStr()
 		assert.Nil(t, err)
 		if mnemonic[mnemonicStr] == true {
 			panic("there is the same mnemonicStr ")
@@ -252,12 +311,12 @@ func TestBlockchainSdk_GenerateMnemonicCodesStr2(t *testing.T) {
 	}
 }
 
-func TestBlockchainSdk_GenerateMnemonicCodesStr(t *testing.T) {
-	testOntSdk := NewBlockchainSdk()
+func TestDNASdk_GenerateMnemonicCodesStr(t *testing.T) {
+	testDnaSdk := NewDNASdk()
 	for i := 0; i < 1000; i++ {
-		mnemonic, err := testOntSdk.GenerateMnemonicCodesStr()
+		mnemonic, err := testDnaSdk.GenerateMnemonicCodesStr()
 		assert.Nil(t, err)
-		private, err := testOntSdk.GetPrivateKeyFromMnemonicCodesStrBip44(mnemonic, 0)
+		private, err := testDnaSdk.GetPrivateKeyFromMnemonicCodesStrBip44(mnemonic, 0)
 		assert.Nil(t, err)
 		acc, err := NewAccountFromPrivateKey(private, signature.SHA256withECDSA)
 		assert.Nil(t, err)
@@ -265,9 +324,9 @@ func TestBlockchainSdk_GenerateMnemonicCodesStr(t *testing.T) {
 		boo := signature.Verify(acc.PublicKey, []byte("test"), si)
 		assert.True(t, boo)
 
-		tx, err := testOntSdk.Native.Gas.NewTransferTransaction(0, 0, acc.Address, acc.Address, 10)
+		tx, err := testDnaSdk.Native.Gas.NewTransferTransaction(0, 0, acc.Address, acc.Address, 10)
 		assert.Nil(t, err)
-		testOntSdk.SignToTransaction(tx, acc)
+		testDnaSdk.SignToTransaction(tx, acc)
 		tx2, err := tx.IntoImmutable()
 		assert.Nil(t, err)
 		res := validation.VerifyTransaction(tx2)
@@ -281,70 +340,63 @@ func TestGenerateMemory(t *testing.T) {
 	entropy, _ := bip39.NewEntropy(128)
 	mnemonic, _ := bip39.NewMnemonic(entropy)
 	mnemonic = "ecology cricket napkin scrap board purpose picnic toe bean heart coast retire"
-	testOntSdk := NewBlockchainSdk()
+	testDnaSdk := NewDNASdk()
 	for i := 0; i < len(expectedPrivateKey); i++ {
-		privk, err := testOntSdk.GetPrivateKeyFromMnemonicCodesStrBip44(mnemonic, uint32(i))
+		privk, err := testDnaSdk.GetPrivateKeyFromMnemonicCodesStrBip44(mnemonic, uint32(i))
 		assert.Nil(t, err)
 		assert.Equal(t, expectedPrivateKey[i], common.ToHexString(privk))
 	}
 }
 
-func TestBlockchainSdk_CreateWallet(t *testing.T) {
-	walletFile := "./wallet2.dat"
-	os.Remove(walletFile)
-
-	testOntSdk := NewBlockchainSdk()
-	wal, err := testOntSdk.CreateWallet(walletFile)
+func TestDNASdk_CreateWallet(t *testing.T) {
+	testDnaSdk := NewDNASdk()
+	wal, err := testDnaSdk.CreateWallet("./wallet2.dat")
 	assert.Nil(t, err)
 	_, err = wal.NewDefaultSettingAccount(testPasswd)
 	assert.Nil(t, err)
 	wal.Save()
 }
 
-func TestNewBlockchainSdk(t *testing.T) {
-	Init()
-
-	testOntSdk = NewBlockchainSdk()
-	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
+func TestNewDNASdk(t *testing.T) {
+	testDnaSdk = NewDNASdk()
+	testWallet, _ = testDnaSdk.OpenWallet("./wallet.dat")
 	event := &event.NotifyEventInfo{
 		ContractAddress: common.ADDRESS_EMPTY,
 		States:          []interface{}{"transfer", "Abc3UVbyL1kxd9sK6N9hzAT2u91ftbpoXT", "AFmseVrdL9f9oyCzZefL9tG6UbviEH9ugK", uint64(10000000)},
 	}
-	e, err := testOntSdk.ParseNaitveTransferEvent(event)
+	e, err := testDnaSdk.ParseNaitveTransferEvent(event)
 	assert.Nil(t, err)
 	fmt.Println(e)
 }
 
-func TestBlockchainSdk_GetTxData(t *testing.T) {
-	Init()
-
-	testOntSdk = NewBlockchainSdk()
-	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
-	acc, _ := testWallet.GetDefaultAccount(testPasswd)
-	tx, _ := testOntSdk.Native.Gas.NewTransferTransaction(500, 10000, acc.Address, acc.Address, 100)
-	testOntSdk.SignToTransaction(tx, acc)
+func TestDNASdk_GetTxData(t *testing.T) {
+	testDnaSdk = NewDNASdk()
+	testWallet, _ = testDnaSdk.OpenWallet("./wallet.dat")
+	acc, _ := testWallet.GetAccountByAddress("AVBzcUtgdgS94SpBmw4rDMhYA4KDq1YTzy", testPasswd)
+	tx, _ := testDnaSdk.Native.Gas.NewTransferTransaction(500, 10000, acc.Address, acc.Address, 100)
+	testDnaSdk.SignToTransaction(tx, acc)
 	tx2, _ := tx.IntoImmutable()
-	buffer := common.NewZeroCopySink(nil)
-	tx2.Serialization(buffer)
-	txData := hex.EncodeToString(buffer.Bytes())
-	tx3, _ := testOntSdk.GetMutableTx(txData)
+	sink := common.NewZeroCopySink(nil)
+	tx2.Serialization(sink)
+	txData := hex.EncodeToString(sink.Bytes())
+	tx3, _ := testDnaSdk.GetMutableTx(txData)
 	assert.Equal(t, tx, tx3)
 }
 
 func Init() {
-	testOntSdk = NewBlockchainSdk()
-	testOntSdk.NewRpcClient().SetAddress("http://localhost:20336")
+	testDnaSdk = NewDNASdk()
+	testDnaSdk.NewRpcClient().SetAddress("http://localhost:20336")
 
 	var err error
 	var wallet *Wallet
 	if !common.FileExisted("./wallet.dat") {
-		wallet, err = testOntSdk.CreateWallet("./wallet.dat")
+		wallet, err = testDnaSdk.CreateWallet("./wallet.dat")
 		if err != nil {
 			fmt.Println("[CreateWallet] error:", err)
 			return
 		}
 	} else {
-		wallet, err = testOntSdk.OpenWallet("./wallet.dat")
+		wallet, err = testDnaSdk.OpenWallet("./wallet.dat")
 		if err != nil {
 			fmt.Println("[CreateWallet] error:", err)
 			return
@@ -356,7 +408,7 @@ func Init() {
 		return
 	}
 	wallet.Save()
-	testWallet, err = testOntSdk.OpenWallet("./wallet.dat")
+	testWallet, err = testDnaSdk.OpenWallet("./wallet.dat")
 	if err != nil {
 		fmt.Printf("account.Open error:%s\n", err)
 		return
@@ -367,7 +419,7 @@ func Init() {
 		return
 	}
 
-	ws := testOntSdk.NewWebSocketClient()
+	ws := testDnaSdk.NewWebSocketClient()
 	err = ws.Connect("ws://localhost:20335")
 	if err != nil {
 		fmt.Printf("Connect ws error:%s", err)
@@ -376,17 +428,15 @@ func Init() {
 }
 
 func TestOnt_Transfer(t *testing.T) {
-	Init()
-
-	testOntSdk = NewBlockchainSdk()
-	testWallet, _ = testOntSdk.OpenWallet("./wallet.dat")
-	txHash, err := testOntSdk.Native.Gas.Transfer(testGasPrice, testGasLimit, testDefAcc, testDefAcc.Address, 1)
+	testDnaSdk = NewDNASdk()
+	testWallet, _ = testDnaSdk.OpenWallet("./wallet.dat")
+	txHash, err := testDnaSdk.Native.Gas.Transfer(testGasPrice, testGasLimit, testDefAcc, testDefAcc.Address, 1)
 	if err != nil {
 		t.Errorf("NewTransferTransaction error:%s", err)
 		return
 	}
-	testOntSdk.WaitForGenerateBlock(30*time.Second, 1)
-	evts, err := testOntSdk.GetSmartContractEvent(txHash.ToHexString())
+	testDnaSdk.WaitForGenerateBlock(30*time.Second, 1)
+	evts, err := testDnaSdk.GetSmartContractEvent(txHash.ToHexString())
 	if err != nil {
 		t.Errorf("GetSmartContractEvent error:%s", err)
 		return
@@ -404,7 +454,7 @@ func TestGlobalParam_GetGlobalParams(t *testing.T) {
 	Init()
 	gasPrice := "gasPrice"
 	params := []string{gasPrice}
-	results, err := testOntSdk.Native.GlobalParams.GetGlobalParams(params)
+	results, err := testDnaSdk.Native.GlobalParams.GetGlobalParams(params)
 	if err != nil {
 		t.Errorf("GetGlobalParams:%+v error:%s", params, err)
 		return
@@ -415,7 +465,7 @@ func TestGlobalParam_GetGlobalParams(t *testing.T) {
 func TestGlobalParam_SetGlobalParams(t *testing.T) {
 	Init()
 	gasPrice := "gasPrice"
-	globalParams, err := testOntSdk.Native.GlobalParams.GetGlobalParams([]string{gasPrice})
+	globalParams, err := testDnaSdk.Native.GlobalParams.GetGlobalParams([]string{gasPrice})
 	if err != nil {
 		t.Errorf("GetGlobalParams error:%s", err)
 		return
@@ -425,13 +475,13 @@ func TestGlobalParam_SetGlobalParams(t *testing.T) {
 		t.Errorf("Get prama value error:%s", err)
 		return
 	}
-	_, err = testOntSdk.Native.GlobalParams.SetGlobalParams(testGasPrice, testGasLimit, testDefAcc, map[string]string{gasPrice: strconv.Itoa(gasPriceValue + 1)})
+	_, err = testDnaSdk.Native.GlobalParams.SetGlobalParams(testGasPrice, testGasLimit, testDefAcc, map[string]string{gasPrice: strconv.Itoa(gasPriceValue + 1)})
 	if err != nil {
 		t.Errorf("SetGlobalParams error:%s", err)
 		return
 	}
-	testOntSdk.WaitForGenerateBlock(30*time.Second, 1)
-	globalParams, err = testOntSdk.Native.GlobalParams.GetGlobalParams([]string{gasPrice})
+	testDnaSdk.WaitForGenerateBlock(30*time.Second, 1)
+	globalParams, err = testDnaSdk.Native.GlobalParams.GetGlobalParams([]string{gasPrice})
 	if err != nil {
 		t.Errorf("GetGlobalParams error:%s", err)
 		return
@@ -446,7 +496,7 @@ func TestGlobalParam_SetGlobalParams(t *testing.T) {
 
 func TestWsScribeEvent(t *testing.T) {
 	Init()
-	wsClient := testOntSdk.ClientMgr.GetWebSocketClient()
+	wsClient := testDnaSdk.ClientMgr.GetWebSocketClient()
 	err := wsClient.SubscribeEvent()
 	if err != nil {
 		t.Errorf("SubscribeTxHash error:%s", err)
@@ -469,15 +519,15 @@ func TestWsScribeEvent(t *testing.T) {
 
 func TestWsTransfer(t *testing.T) {
 	Init()
-	wsClient := testOntSdk.ClientMgr.GetWebSocketClient()
-	testOntSdk.ClientMgr.SetDefaultClient(wsClient)
-	txHash, err := testOntSdk.Native.Gas.Transfer(testGasPrice, testGasLimit, testDefAcc, testDefAcc.Address, 1)
+	wsClient := testDnaSdk.ClientMgr.GetWebSocketClient()
+	testDnaSdk.ClientMgr.SetDefaultClient(wsClient)
+	txHash, err := testDnaSdk.Native.Gas.Transfer(testGasPrice, testGasLimit, testDefAcc, testDefAcc.Address, 1)
 	if err != nil {
 		t.Errorf("NewTransferTransaction error:%s", err)
 		return
 	}
-	testOntSdk.WaitForGenerateBlock(30*time.Second, 1)
-	evts, err := testOntSdk.GetSmartContractEvent(txHash.ToHexString())
+	testDnaSdk.WaitForGenerateBlock(30*time.Second, 1)
+	evts, err := testDnaSdk.GetSmartContractEvent(txHash.ToHexString())
 	if err != nil {
 		t.Errorf("GetSmartContractEvent error:%s", err)
 		return

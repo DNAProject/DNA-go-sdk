@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with The ontology.  If not, see <http://www.gnu.org/licenses/>.
  */
-//Provide some utils for ontology-go-sdk
+//Provide some utils for dna-go-sdk
 package utils
 
 import (
@@ -76,7 +76,7 @@ func GetAssetAddress(asset string) (common.Address, error) {
 	case "GAS":
 		contractAddress = nvutils.GasContractAddress
 	default:
-		return common.ADDRESS_EMPTY, fmt.Errorf("asset:%s not equal ont or ong", asset)
+		return common.ADDRESS_EMPTY, fmt.Errorf("asset:%s not equal gas", asset)
 	}
 	return contractAddress, nil
 }

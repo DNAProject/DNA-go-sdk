@@ -1,6 +1,6 @@
 # Go SDK For DNA
 
-* [Go SDK For DNA](#go-sdk-for-DNA)
+* [Go SDK For DNA](#go-sdk-for-dna)
 	* [1. Overview](#1-overview)
 	* [2. How to use?](#2-how-to-use)
 		* [2.1 Block Chain API](#21-block-chain-api)
@@ -19,9 +19,9 @@
 			* [2.1.13 Get block merkle proof by transaction hash](#2113-get-block-merkle-proof-by-transaction-hash)
 			* [2.1.14 Get transaction state of transaction pool](#2114-get-transaction-state-of-transaction-pool)
 			* [2.1.15 Get transaction count in transaction pool](#2115-get-transaction-count-in-transaction-pool)
-			* [2.1.16 Get version](#2116-get-version)
-			* [2.1.17 Get network id](#2117-get-network-id)
-			* [2.1.18 Send transaction](#2118-send-transaction)
+			* [2.1.16 Get version of DNA](#2116-get-version-of-dna)
+			* [2.1.17 Get network id of DNA](#2117-get-network-id-of-dna)
+			* [2.1.18 Send transaction to DNA](#2118-send-transaction-to-dna)
 			* [2.19 Prepare execute transaction](#219-prepare-execute-transaction)
 		* [2.2 Wallet API](#22-wallet-api)
 			* [2.2.1 Create or Open Wallet](#221-create-or-open-wallet)
@@ -61,10 +61,10 @@ This is a comprehensive Go library for the DNA blockchain. Currently, it support
 
 ## 2. How to use?
 
-First, create an `DNASDK` instance with the `NewBlockchainSdk` method.
+First, create an `DNASDK` instance with the `NewDNASdk` method.
 
 ```
-sdk := NewBlockchainSdk()
+sdk := NewDNASdk()
 ```
 
 Next, create an rpc, rest or websocket client.

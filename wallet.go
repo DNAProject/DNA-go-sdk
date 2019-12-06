@@ -9,13 +9,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"sync"
+
 	"github.com/DNAProject/DNA/common"
 	"github.com/DNAProject/DNA/core/types"
 	"github.com/ontio/ontology-crypto/keypair"
 	s "github.com/ontio/ontology-crypto/signature"
-	"io/ioutil"
-	"os"
-	"sync"
 )
 
 var DEFAULT_WALLET_NAME = "MyWallet"
@@ -38,7 +39,7 @@ type Wallet struct {
 	identityLabelMap map[string]*Identity
 	defIdentity      *Identity
 	path             string
-	ontSdk           *BlockchainSdk
+	dnaSdk           *DNASdk
 	lock             sync.RWMutex
 }
 

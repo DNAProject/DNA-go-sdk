@@ -37,7 +37,7 @@ import (
 	"github.com/DNAProject/DNA/core/types"
 )
 
-//RpcClient for DNA blockchain rpc api
+//RpcClient for dna rpc api
 type RestClient struct {
 	addr       string
 	httpClient *http.Client
@@ -181,14 +181,14 @@ func (this *RestClient) getBlockTxHashesByHeight(qid string, height uint32) ([]b
 
 func (this *RestClient) sendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error) {
 	reqPath := POST_RAW_TX
-	buffer := common.NewZeroCopySink(nil)
-	tx.Serialization(buffer)
+	sink := common.NewZeroCopySink(nil)
+	tx.Serialization(sink)
 	var reqValues *url.Values
 	if isPreExec {
 		reqValues = &url.Values{}
 		reqValues.Add("preExec", "1")
 	}
-	return this.sendRestPostRequest(buffer.Bytes(), reqPath, reqValues)
+	return this.sendRestPostRequest(sink.Bytes(), reqPath, reqValues)
 }
 
 func (this *RestClient) getAddress() (string, error) {

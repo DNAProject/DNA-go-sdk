@@ -21,7 +21,7 @@
 package oep4
 
 import (
-	sdk "github.com/DNAProject/DNA-go-sdk"
+	dnaSdk "github.com/DNAProject/DNA-go-sdk"
 	"github.com/DNAProject/DNA-go-sdk/utils"
 	"github.com/DNAProject/DNA/core/types"
 	"github.com/ontio/ontology-crypto/keypair"
@@ -37,9 +37,9 @@ func TestOep4(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ontSdk := sdk.NewBlockchainSdk()
-	ontSdk.NewRpcClient().SetAddress("http://polaris1.ont.io:20336")
-	oep4 := NewOep4(contractAddr, ontSdk)
+	sdk := dnaSdk.NewDNASdk()
+	sdk.NewRpcClient().SetAddress("http://polaris1.dna.io:20336")
+	oep4 := NewOep4(contractAddr, sdk)
 	name, err := oep4.Name()
 	if err != nil {
 		t.Fatal(err)
@@ -57,7 +57,7 @@ func TestOep4(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	wallet, err := ontSdk.OpenWallet("../../wallet.json")
+	wallet, err := sdk.OpenWallet("../../wallet.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -93,7 +93,7 @@ func TestOep4(t *testing.T) {
 	}
 	t.Logf("transferTx %s: from %s to multi-sign addr %s, amount %d", transferTx.ToHexString(),
 		acc.Address.ToBase58(), multiSignAddr.ToBase58(), amount)
-	accounts := []*sdk.Account{acc, anotherAccount}
+	accounts := []*dnaSdk.Account{acc, anotherAccount}
 	transferMultiSignTx, err := oep4.MultiSignTransfer(accounts, m, acc.Address, amount, gasPrice, gasLimit)
 	if err != nil {
 		t.Fatal(err)
@@ -126,7 +126,7 @@ func TestOep4(t *testing.T) {
 	}
 	t.Logf("transferFromTx %s: multi-sign owner %s, spender addr %s, to %s, amount %d",
 		transferFromTx.ToHexString(), multiSignAddr.ToBase58(), acc.Address.ToBase58(), acc.Address.ToBase58(), amount)
-	_, _ = ontSdk.WaitForGenerateBlock(30 * time.Second)
+	_, _ = sdk.WaitForGenerateBlock(30 * time.Second)
 
 	eventsFromTx, err := oep4.FetchTxTransferEvent(transferTx.ToHexString())
 	if err != nil {

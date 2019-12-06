@@ -93,7 +93,6 @@ const (
 	GET_MERKLE_PROOF      = "/api/v1/merkleproof/"
 	GET_GAS_PRICE         = "/api/v1/gasprice"
 	GET_ALLOWANCE         = "/api/v1/allowance/"
-	GET_UNBOUNDONG        = "/api/v1/unboundong/"
 	GET_MEMPOOL_TXCOUNT   = "/api/v1/mempool/txcount"
 	GET_MEMPOOL_TXSTATE   = "/api/v1/mempool/txstate/"
 	GET_VERSION           = "/api/v1/version"

@@ -609,9 +609,9 @@ func (this *WSClient) getRawTransaction(qid, txHash string) ([]byte, error) {
 }
 
 func (this *WSClient) sendRawTransaction(qid string, tx *types.Transaction, isPreExec bool) ([]byte, error) {
-	buffer := common.NewZeroCopySink(nil)
-	tx.Serialization(buffer)
-	txData := hex.EncodeToString(buffer.Bytes())
+	sink := common.NewZeroCopySink(nil)
+	tx.Serialization(sink)
+	txData := hex.EncodeToString(sink.Bytes())
 	params := map[string]interface{}{"Data": txData}
 	if isPreExec {
 		params["PreExec"] = "1"
@@ -676,9 +676,9 @@ func (this *WSClient) GetActionCh() chan *WSAction {
 }
 
 func (this *WSClient) sendAsyncRawTransaction(qid string, tx *types.Transaction, isPreExec bool) (*WSRequest, error) {
-	buffer := common.NewZeroCopySink(nil)
-	tx.Serialization(buffer)
-	txData := hex.EncodeToString(buffer.Bytes())
+	sink := common.NewZeroCopySink(nil)
+	tx.Serialization(sink)
+	txData := hex.EncodeToString(sink.Bytes())
 	params := map[string]interface{}{"Data": txData}
 	if isPreExec {
 		params["PreExec"] = "1"

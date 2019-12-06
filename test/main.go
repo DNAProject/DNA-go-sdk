@@ -11,10 +11,10 @@ import (
 )
 
 func main() {
-	testOntSdk := sdk.NewBlockchainSdk()
-	testOntSdk.NewRpcClient().SetAddress("http://127.0.0.1:20336")
-	for i := uint32(0); i < 1000; i++ {
-		block, err := testOntSdk.GetBlockByHeight(i)
+	testDnaSdk := sdk.NewDNASdk()
+	testDnaSdk.NewRpcClient().SetAddress("http://dappnode1.dna.io:20336")
+	for i := uint32(4513925); i > 100000; i++ {
+		block, err := testDnaSdk.GetBlockByHeight(i)
 		if err != nil {
 			fmt.Println("error: ", err)
 			return
