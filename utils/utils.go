@@ -124,9 +124,11 @@ func PubKeysEqual(pks1, pks2 []keypair.PublicKey) bool {
 }
 
 func IsEmptyJsonArray(data []byte) bool {
-	if len(data) == 2 && ((data[0] == '"' && data[1] == '"') ||
-		(data[0] == '{' && data[1] == '}') ||
-		(data[0] == '[' && data[1] == ']')) {
+	if len(data) < 2 {
+		return true
+	}
+	str := string(data[:2])
+	if str == "\"\"" || str == "[]" || str == "{}"{
 		return true
 	}
 	return false
