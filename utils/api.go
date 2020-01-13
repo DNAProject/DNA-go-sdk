@@ -139,6 +139,9 @@ func GetSmartContractEventLog(data []byte) (*sdkcom.SmartContractEventLog, error
 
 func GetSmartContactEvents(data []byte) ([]*sdkcom.SmartContactEvent, error) {
 	events := make([]*sdkcom.SmartContactEvent, 0)
+	if IsEmptyJsonArray(data) {
+		return events, nil
+	}
 	err := json.Unmarshal(data, &events)
 	if err != nil {
 		return nil, fmt.Errorf("json.Unmarshal SmartContactEvent:%s error:%s", data, err)
