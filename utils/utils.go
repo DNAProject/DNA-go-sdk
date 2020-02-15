@@ -27,7 +27,7 @@ import (
 	"github.com/DNAProject/DNA/common"
 	"github.com/DNAProject/DNA/core/signature"
 	"github.com/DNAProject/DNA/core/types"
-	nvutils "github.com/DNAProject/DNA/smartcontract/service/native/utils"
+	common2 "github.com/DNAProject/DNA/smartcontract/service/native/common"
 	"github.com/ontio/ontology-crypto/keypair"
 	"os"
 	"sort"
@@ -74,7 +74,7 @@ func GetAssetAddress(asset string) (common.Address, error) {
 	var contractAddress common.Address
 	switch strings.ToUpper(asset) {
 	case "GAS":
-		contractAddress = nvutils.GasContractAddress
+		contractAddress = common2.GasContractAddress
 	default:
 		return common.ADDRESS_EMPTY, fmt.Errorf("asset:%s not equal gas", asset)
 	}
@@ -128,7 +128,7 @@ func IsEmptyJsonArray(data []byte) bool {
 		return true
 	}
 	str := string(data[:2])
-	if str == "\"\"" || str == "[]" || str == "{}"{
+	if str == "\"\"" || str == "[]" || str == "{}" {
 		return true
 	}
 	return false
