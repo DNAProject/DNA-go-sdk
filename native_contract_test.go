@@ -31,6 +31,9 @@ func TestNativeContract_DeployNativeContract(t *testing.T) {
 		return
 	}
 	fmt.Printf("test deploy native contract event: %+v\n", event)
+	for _, ev := range event.Notify {
+		fmt.Printf("contract: %s, state: %v\n", ev.ContractAddress, ev.States)
+	}
 }
 
 func TestOntId_RegIDWithPublicKey(t *testing.T) {
