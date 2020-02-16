@@ -364,7 +364,7 @@ type DID struct {
 	native *NativeContract
 }
 
-func (this *DID) NewinitDIDTransaction(gasPrice, gasLimit uint64, didMethod string) (*types.MutableTransaction, error) {
+func (this *DID) NewInitDIDTransaction(gasPrice, gasLimit uint64, didMethod string) (*types.MutableTransaction, error) {
 	return this.native.NewNativeInvokeTransaction(
 		gasPrice,
 		gasLimit,
@@ -378,7 +378,7 @@ func (this *DID) NewinitDIDTransaction(gasPrice, gasLimit uint64, didMethod stri
 }
 
 func (this *DID) InitDID(gasPrice, gasLimit uint64, signer *Account, didMethod string) (common.Uint256, error) {
-	tx, err := this.NewinitDIDTransaction(gasPrice, gasLimit, didMethod)
+	tx, err := this.NewInitDIDTransaction(gasPrice, gasLimit, didMethod)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
@@ -1031,6 +1031,30 @@ func (this *GlobalParam) CreateSnapshot(gasPrice, gasLimit uint64, signer *Accou
 type Auth struct {
 	dnaSkd *DNASdk
 	native *NativeContract
+}
+
+func (this *Auth) NewInitAuthTransaction(gasPrice, gasLimit uint64) (*types.MutableTransaction, error) {
+	return this.native.NewNativeInvokeTransaction(
+		gasPrice,
+		gasLimit,
+		this.native.AuthContractVersion,
+		this.native.AuthContractAddr,
+		"initAuth",
+		[]interface{} {
+			this.native.DIDContractAddr[:],
+		},
+	)
+}
+
+func (this *Auth) InitAuth(gasPrice, gasLimit uint64, signer *Account) (common.Uint256, error) {
+	tx, err := this.NewInitAuthTransaction(gasPrice, gasLimit)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	if err := this.dnaSkd.SignToTransaction(tx, signer); err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	return this.dnaSkd.SendTransaction(tx)
 }
 
 func (this *Auth) NewAssignFuncsToRoleTransaction(gasPrice, gasLimit uint64, contractAddress common.Address, adminId, role []byte, funcNames []string, keyIndex int) (*types.MutableTransaction, error) {

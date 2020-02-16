@@ -15,12 +15,12 @@ import (
 	"github.com/DNAProject/DNA-go-sdk/utils"
 )
 
-func TestNativeContract_DeployNativeContract(t *testing.T) {
+func TestNativeContract_DeployDIDContract(t *testing.T) {
 	Init()
 
 	initParamStr, err := GenerateID(testDidMethod)
 	if err != nil {
-		t.Errorf("generate ID in deploy native contract: %s", err)
+		t.Errorf("generate ID in deploy did native contract: %s", err)
 		return
 	}
 	txHash, err := testDnaSdk.Native.DeployNativeContract(testGasPrice, testGasLimit, testDefAcc,
@@ -29,36 +29,36 @@ func TestNativeContract_DeployNativeContract(t *testing.T) {
 	testDnaSdk.WaitForGenerateBlock(30*time.Second, 1)
 	event, err := testDnaSdk.GetSmartContractEvent(txHash.ToHexString())
 	if err != nil {
-		t.Errorf("test deploy native contract error: %s", err)
+		t.Errorf("test deploy did native contract error: %s", err)
 		return
 	}
-	fmt.Printf("test deploy native contract event: %+v\n", event)
+	fmt.Printf("test deploy did native contract event: %+v\n", event)
 	for _, ev := range event.Notify {
 		fmt.Printf("contract: %s, state: %v\n", ev.ContractAddress, ev.States)
 		didAddr, err := utils.AddressFromHexString(ev.ContractAddress)
 		if err != nil {
-			t.Errorf("failed to parse addr: %s", err)
+			t.Errorf("failed to parse did addr: %s", err)
 		}
 		testDnaSdk.Native.DIDContractAddr = didAddr
 		t.Logf("update DID contract to %s", ev.ContractAddress)
 	}
 
-	TestDID_initDID(t)
+	TestDID_InitDID(t)
 	TestOntId_RegIDWithPublicKey(t)
 }
 
-func TestDID_initDID(t *testing.T) {
+func TestDID_InitDID(t *testing.T) {
 	txHash, err := testDnaSdk.Native.DID.InitDID(testGasPrice, testGasLimit, testDefAcc, testDidMethod)
 	if err != nil {
-		t.Errorf("TestDID_initDID init did err: %s", err)
+		t.Errorf("TestDID_InitDID init did err: %s", err)
 		return
 	}
 	testDnaSdk.WaitForGenerateBlock(30*time.Second, 1)
 	event, err := testDnaSdk.GetSmartContractEvent(txHash.ToHexString())
 	if err != nil {
-		t.Errorf("TestDID_initDID get smart contract event: %s", err)
+		t.Errorf("TestDID_InitDID get smart contract event: %s", err)
 	}
-	fmt.Printf("TestDID_initDID event: %v\n", event)
+	fmt.Printf("TestDID_InitDID event: %v\n", event)
 }
 
 func TestOntId_RegIDWithPublicKey(t *testing.T) {
