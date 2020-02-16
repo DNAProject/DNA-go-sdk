@@ -41,12 +41,13 @@ import (
 )
 
 var (
-	testDnaSdk   *DNASdk
-	testWallet   *Wallet
-	testPasswd   = []byte("123456")
-	testDefAcc   *Account
-	testGasPrice = uint64(0)
-	testGasLimit = uint64(20000)
+	testDnaSdk    *DNASdk
+	testWallet    *Wallet
+	testPasswd    = []byte("123456")
+	testDefAcc    *Account
+	testGasPrice  = uint64(0)
+	testGasLimit  = uint64(20000)
+	testDidMethod = "tst"
 )
 
 func TestOntId_NewRegIDWithAttributesTransaction(t *testing.T) {

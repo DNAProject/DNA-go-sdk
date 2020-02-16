@@ -7,16 +7,18 @@ package DNA_go_sdk
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/DNAProject/DNA/smartcontract/service/native/common"
-	"github.com/ontio/ontology-crypto/keypair"
 	"testing"
 	"time"
+
+	"github.com/DNAProject/DNA/smartcontract/service/native/common"
+	"github.com/ontio/ontology-crypto/keypair"
+	"github.com/DNAProject/DNA-go-sdk/utils"
 )
 
 func TestNativeContract_DeployNativeContract(t *testing.T) {
 	Init()
 
-	initParamStr, err := GenerateID()
+	initParamStr, err := GenerateID(testDidMethod)
 	if err != nil {
 		t.Errorf("generate ID in deploy native contract: %s", err)
 		return
@@ -33,11 +35,34 @@ func TestNativeContract_DeployNativeContract(t *testing.T) {
 	fmt.Printf("test deploy native contract event: %+v\n", event)
 	for _, ev := range event.Notify {
 		fmt.Printf("contract: %s, state: %v\n", ev.ContractAddress, ev.States)
+		didAddr, err := utils.AddressFromHexString(ev.ContractAddress)
+		if err != nil {
+			t.Errorf("failed to parse addr: %s", err)
+		}
+		testDnaSdk.Native.DIDContractAddr = didAddr
+		t.Logf("update DID contract to %s", ev.ContractAddress)
 	}
+
+	TestDID_initDID(t)
+	TestOntId_RegIDWithPublicKey(t)
+}
+
+func TestDID_initDID(t *testing.T) {
+	txHash, err := testDnaSdk.Native.DID.InitDID(testGasPrice, testGasLimit, testDefAcc, testDidMethod)
+	if err != nil {
+		t.Errorf("TestDID_initDID init did err: %s", err)
+		return
+	}
+	testDnaSdk.WaitForGenerateBlock(30*time.Second, 1)
+	event, err := testDnaSdk.GetSmartContractEvent(txHash.ToHexString())
+	if err != nil {
+		t.Errorf("TestDID_initDID get smart contract event: %s", err)
+	}
+	fmt.Printf("TestDID_initDID event: %v\n", event)
 }
 
 func TestOntId_RegIDWithPublicKey(t *testing.T) {
-	testIdentity, err := testWallet.NewDefaultSettingIdentity(testPasswd)
+	testIdentity, err := testWallet.NewDefaultSettingIdentity(testDidMethod, testPasswd)
 	if err != nil {
 		t.Errorf("TestOntId_RegIDWithPublicKey NewDefaultSettingIdentity error:%s", err)
 		return
@@ -69,7 +94,7 @@ func TestOntId_RegIDWithPublicKey(t *testing.T) {
 }
 
 func TestOntId_RegIDWithAttributes(t *testing.T) {
-	testIdentity, err := testWallet.NewDefaultSettingIdentity(testPasswd)
+	testIdentity, err := testWallet.NewDefaultSettingIdentity(testDidMethod, testPasswd)
 	if err != nil {
 		t.Errorf("TestOntId_RegIDWithPublicKey NewDefaultSettingIdentity error:%s", err)
 		return
@@ -129,7 +154,7 @@ func TestOntId_RegIDWithAttributes(t *testing.T) {
 }
 
 func TestOntId_Key(t *testing.T) {
-	testIdentity, err := testWallet.NewDefaultSettingIdentity(testPasswd)
+	testIdentity, err := testWallet.NewDefaultSettingIdentity(testDidMethod, testPasswd)
 	if err != nil {
 		t.Errorf("TestOntId_Key NewDefaultSettingIdentity error:%s", err)
 		return
@@ -221,7 +246,7 @@ func TestOntId_Key(t *testing.T) {
 }
 
 func TestOntId_Attribute(t *testing.T) {
-	testIdentity, err := testWallet.NewDefaultSettingIdentity(testPasswd)
+	testIdentity, err := testWallet.NewDefaultSettingIdentity(testDidMethod, testPasswd)
 	if err != nil {
 		t.Errorf("TestOntId_Attribute NewDefaultSettingIdentity error:%s", err)
 		return
@@ -285,7 +310,7 @@ func TestOntId_Attribute(t *testing.T) {
 }
 
 func TestOntId_Recovery(t *testing.T) {
-	testIdentity, err := testWallet.NewDefaultSettingIdentity(testPasswd)
+	testIdentity, err := testWallet.NewDefaultSettingIdentity(testDidMethod, testPasswd)
 	if err != nil {
 		t.Errorf("TestOntId_Recovery NewDefaultSettingIdentity error:%s", err)
 		return

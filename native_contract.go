@@ -13,13 +13,13 @@ import (
 	"github.com/DNAProject/DNA-go-sdk/utils"
 	"github.com/DNAProject/DNA/common"
 	"github.com/DNAProject/DNA/common/serialization"
+	"github.com/DNAProject/DNA/core/payload"
 	"github.com/DNAProject/DNA/core/types"
 	cutils "github.com/DNAProject/DNA/core/utils"
 	common2 "github.com/DNAProject/DNA/smartcontract/service/native/common"
 	"github.com/DNAProject/DNA/smartcontract/service/native/gas"
 	"github.com/DNAProject/DNA/smartcontract/service/native/global_params"
 	"github.com/ontio/ontology-crypto/keypair"
-	"github.com/DNAProject/DNA/core/payload"
 )
 
 var (
@@ -97,7 +97,7 @@ func (this *NativeContract) DeployNativeContract(
 ) (common.Uint256, error) {
 	ndc := &payload.NativeDeployCode{
 		BaseContractAddress: baseNativeContract,
-		InitParam: initParam,
+		InitParam:           initParam,
 	}
 	sink := common.NewZeroCopySink(nil)
 	ndc.Serialization(sink)
@@ -362,6 +362,30 @@ func (this *Gas) TotalSupply() (uint64, error) {
 type DID struct {
 	dnaSdk *DNASdk
 	native *NativeContract
+}
+
+func (this *DID) NewinitDIDTransaction(gasPrice, gasLimit uint64, didMethod string) (*types.MutableTransaction, error) {
+	return this.native.NewNativeInvokeTransaction(
+		gasPrice,
+		gasLimit,
+		this.native.DIDContractVersion,
+		this.native.DIDContractAddr,
+		"initDID",
+		[]interface{}{
+			[]byte(didMethod),
+		},
+	)
+}
+
+func (this *DID) InitDID(gasPrice, gasLimit uint64, signer *Account, didMethod string) (common.Uint256, error) {
+	tx, err := this.NewinitDIDTransaction(gasPrice, gasLimit, didMethod)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	if err := this.dnaSdk.SignToTransaction(tx, signer); err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	return this.dnaSdk.SendTransaction(tx)
 }
 
 func (this *DID) NewRegIDWithPublicKeyTransaction(gasPrice, gasLimit uint64, ontId string, pubKey keypair.PublicKey) (*types.MutableTransaction, error) {
