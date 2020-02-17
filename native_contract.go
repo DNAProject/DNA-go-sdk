@@ -62,7 +62,7 @@ func newNativeContract(dnaSkd *DNASdk) *NativeContract {
 	native.Gas = &Gas{native: native, dnaSkd: dnaSkd}
 	native.DID = &DID{native: native, dnaSdk: dnaSkd}
 	native.GlobalParams = &GlobalParam{native: native, dnaSkd: dnaSkd}
-	native.Auth = &Auth{native: native, dnaSkd: dnaSkd}
+	native.Auth = &Auth{native: native, dnaSdk: dnaSkd}
 	return native
 }
 
@@ -1029,7 +1029,7 @@ func (this *GlobalParam) CreateSnapshot(gasPrice, gasLimit uint64, signer *Accou
 }
 
 type Auth struct {
-	dnaSkd *DNASdk
+	dnaSdk *DNASdk
 	native *NativeContract
 }
 
@@ -1040,7 +1040,7 @@ func (this *Auth) NewInitAuthTransaction(gasPrice, gasLimit uint64) (*types.Muta
 		this.native.AuthContractVersion,
 		this.native.AuthContractAddr,
 		"initAuth",
-		[]interface{} {
+		[]interface{}{
 			this.native.DIDContractAddr[:],
 		},
 	)
@@ -1051,10 +1051,34 @@ func (this *Auth) InitAuth(gasPrice, gasLimit uint64, signer *Account) (common.U
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	if err := this.dnaSkd.SignToTransaction(tx, signer); err != nil {
+	if err := this.dnaSdk.SignToTransaction(tx, signer); err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	return this.dnaSkd.SendTransaction(tx)
+	return this.dnaSdk.SendTransaction(tx)
+}
+
+func (this *Auth) NewInitContractAdminTransaction(gasPrice, gasLimit uint64, adminId []byte) (*types.MutableTransaction, error) {
+	return this.native.NewNativeInvokeTransaction(
+		gasPrice,
+		gasLimit,
+		this.native.AuthContractVersion,
+		this.native.AuthContractAddr,
+		"initContractAdmin",
+		[]interface{}{
+			adminId,
+		},
+	)
+}
+
+func (this *Auth) InitContractAdmin(gasPrice, gasLimit uint64, signer *Account, adminId []byte) (common.Uint256, error) {
+	tx, err := this.NewInitContractAdminTransaction(gasPrice, gasLimit, adminId)
+	if err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	if err := this.dnaSdk.SignToTransaction(tx, signer); err != nil {
+		return common.UINT256_EMPTY, err
+	}
+	return this.dnaSdk.SendTransaction(tx)
 }
 
 func (this *Auth) NewAssignFuncsToRoleTransaction(gasPrice, gasLimit uint64, contractAddress common.Address, adminId, role []byte, funcNames []string, keyIndex int) (*types.MutableTransaction, error) {
@@ -1078,11 +1102,11 @@ func (this *Auth) AssignFuncsToRole(gasPrice, gasLimit uint64, contractAddress c
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	err = this.dnaSkd.SignToTransaction(tx, signer)
+	err = this.dnaSdk.SignToTransaction(tx, signer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	return this.dnaSkd.SendTransaction(tx)
+	return this.dnaSdk.SendTransaction(tx)
 }
 
 func (this *Auth) NewDelegateTransaction(gasPrice, gasLimit uint64, contractAddress common.Address, from, to, role []byte, period, level, keyIndex int) (*types.MutableTransaction, error) {
@@ -1108,11 +1132,11 @@ func (this *Auth) Delegate(gasPrice, gasLimit uint64, signer *Account, contractA
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	err = this.dnaSkd.SignToTransaction(tx, signer)
+	err = this.dnaSdk.SignToTransaction(tx, signer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	return this.dnaSkd.SendTransaction(tx)
+	return this.dnaSdk.SendTransaction(tx)
 }
 
 func (this *Auth) NewWithdrawTransaction(gasPrice, gasLimit uint64, contractAddress common.Address, initiator, delegate, role []byte, keyIndex int) (*types.MutableTransaction, error) {
@@ -1136,11 +1160,11 @@ func (this *Auth) Withdraw(gasPrice, gasLimit uint64, signer *Account, contractA
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	err = this.dnaSkd.SignToTransaction(tx, signer)
+	err = this.dnaSdk.SignToTransaction(tx, signer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	return this.dnaSkd.SendTransaction(tx)
+	return this.dnaSdk.SendTransaction(tx)
 }
 
 func (this *Auth) NewAssignOntIDsToRoleTransaction(gasPrice, gasLimit uint64, contractAddress common.Address, admontId, role []byte, persons [][]byte, keyIndex int) (*types.MutableTransaction, error) {
@@ -1164,11 +1188,11 @@ func (this *Auth) AssignOntIDsToRole(gasPrice, gasLimit uint64, signer *Account,
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	err = this.dnaSkd.SignToTransaction(tx, signer)
+	err = this.dnaSdk.SignToTransaction(tx, signer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	return this.dnaSkd.SendTransaction(tx)
+	return this.dnaSdk.SendTransaction(tx)
 }
 
 func (this *Auth) NewTransferTransaction(gasPrice, gasLimit uint64, contractAddress common.Address, newAdminId []byte, keyIndex int) (*types.MutableTransaction, error) {
@@ -1190,11 +1214,11 @@ func (this *Auth) Transfer(gasPrice, gasLimit uint64, signer *Account, contractA
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	err = this.dnaSkd.SignToTransaction(tx, signer)
+	err = this.dnaSdk.SignToTransaction(tx, signer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	return this.dnaSkd.SendTransaction(tx)
+	return this.dnaSdk.SendTransaction(tx)
 }
 
 func (this *Auth) NewVerifyTokenTransaction(gasPrice, gasLimit uint64, contractAddress common.Address, caller []byte, funcName string, keyIndex int) (*types.MutableTransaction, error) {
@@ -1217,9 +1241,9 @@ func (this *Auth) VerifyToken(gasPrice, gasLimit uint64, signer *Account, contra
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	err = this.dnaSkd.SignToTransaction(tx, signer)
+	err = this.dnaSdk.SignToTransaction(tx, signer)
 	if err != nil {
 		return common.UINT256_EMPTY, err
 	}
-	return this.dnaSkd.SendTransaction(tx)
+	return this.dnaSdk.SendTransaction(tx)
 }

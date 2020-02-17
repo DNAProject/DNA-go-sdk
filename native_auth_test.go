@@ -14,14 +14,15 @@ import (
 )
 
 func TestNativeContract_DeployAuthContract(t *testing.T) {
-	Init()
+	// init, deploy did contract, update did method
+	TestNativeContract_DeployDIDContract(t)
 
+	// depoly auth contract
 	initParamStr, err := GenerateID(testDidMethod)
 	if err != nil {
 		t.Errorf("generate ID in deploy auth native contract: %s", err)
 		return
 	}
-
 	txHash, err := testDnaSdk.Native.DeployNativeContract(testGasPrice, testGasLimit, testDefAcc,
 		common.AuthContractAddress, []byte(initParamStr),
 		"testname", "1.0", "testAuthor", "test@example.com", "test deploying native Auth")
@@ -43,6 +44,7 @@ func TestNativeContract_DeployAuthContract(t *testing.T) {
 	}
 
 	TestAuth_InitAuth(t)
+	TestAuth_InitContractAdmin(t)
 }
 
 func TestAuth_InitAuth(t *testing.T) {
@@ -59,26 +61,23 @@ func TestAuth_InitAuth(t *testing.T) {
 	fmt.Printf("TestAuth_InitAuth event: %v\n", event)
 }
 
-func TestAuth_AssignFuncsToRole(t *testing.T) {
+func TestAuth_InitContractAdmin(t *testing.T) {
+	// create auth admin
+	testAuthAdmin, err := testWallet.NewDefaultSettingIdentity(testDidMethod, testPasswd)
+	if err != nil {
+		fmt.Printf("create auth admin identity err: %s \n", err)
+		return
+	}
 
-}
-
-func TestAuth_Delegate(t *testing.T) {
-
-}
-
-func TestAuth_Withdraw(t *testing.T) {
-
-}
-
-func TestAuth_AssignOntIDsToRole(t *testing.T) {
-
-}
-
-func TestAuth_Transfer(t *testing.T) {
-
-}
-
-func TestAuth_VerifyToken(t *testing.T) {
-
+	txHash, err := testDnaSdk.Native.Auth.InitContractAdmin(testGasPrice, testGasLimit, testDefAcc, []byte(testAuthAdmin.ID))
+	if err != nil {
+		t.Errorf("TestAuth_InitContractAdmin init contract admin %s: %s", testAuthAdmin.ID, err)
+		return
+	}
+	testDnaSdk.WaitForGenerateBlock(30*time.Second, 1)
+	event, err := testDnaSdk.GetSmartContractEvent(txHash.ToHexString())
+	if err != nil {
+		t.Errorf("TestAuth_InitContractAdmin get smart contract event: %s", err)
+	}
+	fmt.Printf("TestAuth_InitContractAdmin event: %v\n", event)
 }
