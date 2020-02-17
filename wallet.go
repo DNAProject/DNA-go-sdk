@@ -451,8 +451,8 @@ func (this *Wallet) ExportAccounts(path string, accountDatas []*AccountData, pas
 	return newWallet, nil
 }
 
-func (this *Wallet) NewIdentity(keyType keypair.KeyType, curveCode byte, sigScheme s.SignatureScheme, passwd []byte) (*Identity, error) {
-	identity, err := NewIdentity(this.Scrypt)
+func (this *Wallet) NewIdentity(didMethod string, keyType keypair.KeyType, curveCode byte, sigScheme s.SignatureScheme, passwd []byte) (*Identity, error) {
+	identity, err := NewIdentity(didMethod, this.Scrypt)
 	if err != nil {
 		return nil, err
 	}
@@ -473,8 +473,8 @@ func (this *Wallet) NewIdentity(keyType keypair.KeyType, curveCode byte, sigSche
 	return identity, nil
 }
 
-func (this *Wallet) NewDefaultSettingIdentity(passwd []byte) (*Identity, error) {
-	return this.NewIdentity(keypair.PK_ECDSA, keypair.P256, s.SHA256withECDSA, passwd)
+func (this *Wallet) NewDefaultSettingIdentity(didMethod string, passwd []byte) (*Identity, error) {
+	return this.NewIdentity(didMethod, keypair.PK_ECDSA, keypair.P256, s.SHA256withECDSA, passwd)
 }
 
 func (this *Wallet) GetDefaultIdentity() (*Identity, error) {

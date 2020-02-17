@@ -7,13 +7,62 @@ package DNA_go_sdk
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/ontio/ontology-crypto/keypair"
 	"testing"
 	"time"
+
+	"github.com/DNAProject/DNA/smartcontract/service/native/common"
+	"github.com/ontio/ontology-crypto/keypair"
+	"github.com/DNAProject/DNA-go-sdk/utils"
 )
 
+func TestNativeContract_DeployDIDContract(t *testing.T) {
+	Init()
+
+	initParamStr, err := GenerateID(testDidMethod)
+	if err != nil {
+		t.Errorf("generate ID in deploy did native contract: %s", err)
+		return
+	}
+	txHash, err := testDnaSdk.Native.DeployNativeContract(testGasPrice, testGasLimit, testDefAcc,
+		common.DIDContractAddress, []byte(initParamStr),
+		"testname", "1.0", "testAuthor", "test@example.com", "test deploying native DID")
+	testDnaSdk.WaitForGenerateBlock(30*time.Second, 1)
+	event, err := testDnaSdk.GetSmartContractEvent(txHash.ToHexString())
+	if err != nil {
+		t.Errorf("test deploy did native contract error: %s", err)
+		return
+	}
+	fmt.Printf("test deploy did native contract event: %+v\n", event)
+	for _, ev := range event.Notify {
+		fmt.Printf("contract: %s, state: %v\n", ev.ContractAddress, ev.States)
+		didAddr, err := utils.AddressFromHexString(ev.ContractAddress)
+		if err != nil {
+			t.Errorf("failed to parse did addr: %s", err)
+		}
+		testDnaSdk.Native.DIDContractAddr = didAddr
+		t.Logf("update DID contract to %s", ev.ContractAddress)
+	}
+
+	TestDID_InitDID(t)
+	TestOntId_RegIDWithPublicKey(t)
+}
+
+func TestDID_InitDID(t *testing.T) {
+	txHash, err := testDnaSdk.Native.DID.InitDID(testGasPrice, testGasLimit, testDefAcc, testDidMethod)
+	if err != nil {
+		t.Errorf("TestDID_InitDID init did err: %s", err)
+		return
+	}
+	testDnaSdk.WaitForGenerateBlock(30*time.Second, 1)
+	event, err := testDnaSdk.GetSmartContractEvent(txHash.ToHexString())
+	if err != nil {
+		t.Errorf("TestDID_InitDID get smart contract event: %s", err)
+	}
+	fmt.Printf("TestDID_InitDID event: %v\n", event)
+}
+
 func TestOntId_RegIDWithPublicKey(t *testing.T) {
-	testIdentity, err := testWallet.NewDefaultSettingIdentity(testPasswd)
+	testIdentity, err := testWallet.NewDefaultSettingIdentity(testDidMethod, testPasswd)
 	if err != nil {
 		t.Errorf("TestOntId_RegIDWithPublicKey NewDefaultSettingIdentity error:%s", err)
 		return
@@ -23,7 +72,7 @@ func TestOntId_RegIDWithPublicKey(t *testing.T) {
 		t.Errorf("TestOntId_RegIDWithPublicKey GetControllerByIndex error:%s", err)
 		return
 	}
-	txHash, err := testDnaSdk.Native.OntId.RegIDWithPublicKey(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, testDefController)
+	txHash, err := testDnaSdk.Native.DID.RegIDWithPublicKey(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, testDefController)
 	if err != nil {
 		t.Errorf("TestOntId_RegIDWithPublicKey RegIDWithPublicKey error:%s", err)
 		return
@@ -36,7 +85,7 @@ func TestOntId_RegIDWithPublicKey(t *testing.T) {
 	}
 	fmt.Printf("TestOntId_RegIDWithPublicKey Event: %+v\n", event)
 
-	ddo, err := testDnaSdk.Native.OntId.GetDDO(testIdentity.ID)
+	ddo, err := testDnaSdk.Native.DID.GetDDO(testIdentity.ID)
 	if err != nil {
 		t.Errorf("TestOntId_RegIDWithPublicKey GetDDO error:%s", err)
 		return
@@ -45,7 +94,7 @@ func TestOntId_RegIDWithPublicKey(t *testing.T) {
 }
 
 func TestOntId_RegIDWithAttributes(t *testing.T) {
-	testIdentity, err := testWallet.NewDefaultSettingIdentity(testPasswd)
+	testIdentity, err := testWallet.NewDefaultSettingIdentity(testDidMethod, testPasswd)
 	if err != nil {
 		t.Errorf("TestOntId_RegIDWithPublicKey NewDefaultSettingIdentity error:%s", err)
 		return
@@ -68,14 +117,14 @@ func TestOntId_RegIDWithAttributes(t *testing.T) {
 		ValueType: []byte("string"),
 	}
 	attributes = append(attributes, attr2)
-	_, err = testDnaSdk.Native.OntId.RegIDWithAttributes(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, testDefController, attributes)
+	_, err = testDnaSdk.Native.DID.RegIDWithAttributes(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, testDefController, attributes)
 	if err != nil {
 		t.Errorf("TestOntId_RegIDWithPublicKey RegIDWithAttributes error:%s", err)
 		return
 	}
 	testDnaSdk.WaitForGenerateBlock(30*time.Second, 1)
 
-	ddo, err := testDnaSdk.Native.OntId.GetDDO(testIdentity.ID)
+	ddo, err := testDnaSdk.Native.DID.GetDDO(testIdentity.ID)
 	if err != nil {
 		t.Errorf("GetDDO error:%s", err)
 		return
@@ -105,7 +154,7 @@ func TestOntId_RegIDWithAttributes(t *testing.T) {
 }
 
 func TestOntId_Key(t *testing.T) {
-	testIdentity, err := testWallet.NewDefaultSettingIdentity(testPasswd)
+	testIdentity, err := testWallet.NewDefaultSettingIdentity(testDidMethod, testPasswd)
 	if err != nil {
 		t.Errorf("TestOntId_Key NewDefaultSettingIdentity error:%s", err)
 		return
@@ -115,7 +164,7 @@ func TestOntId_Key(t *testing.T) {
 		t.Errorf("TestOntId_Key GetControllerByIndex error:%s", err)
 		return
 	}
-	_, err = testDnaSdk.Native.OntId.RegIDWithPublicKey(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, testDefController)
+	_, err = testDnaSdk.Native.DID.RegIDWithPublicKey(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, testDefController)
 	if err != nil {
 		t.Errorf("TestOntId_Key RegIDWithPublicKey error:%s", err)
 		return
@@ -128,14 +177,14 @@ func TestOntId_Key(t *testing.T) {
 		return
 	}
 
-	_, err = testDnaSdk.Native.OntId.AddKey(testGasPrice, testGasLimit, testIdentity.ID, testDefAcc, controller1.PublicKey, testDefController)
+	_, err = testDnaSdk.Native.DID.AddKey(testGasPrice, testGasLimit, testIdentity.ID, testDefAcc, controller1.PublicKey, testDefController)
 	if err != nil {
 		t.Errorf("TestOntId_Key AddKey error:%s", err)
 		return
 	}
 	testDnaSdk.WaitForGenerateBlock(30*time.Second, 1)
 
-	owners, err := testDnaSdk.Native.OntId.GetPublicKeys(testIdentity.ID)
+	owners, err := testDnaSdk.Native.DID.GetPublicKeys(testIdentity.ID)
 	if err != nil {
 		t.Errorf("TestOntId_Key GetPublicKeys error:%s", err)
 		return
@@ -156,14 +205,14 @@ func TestOntId_Key(t *testing.T) {
 		return
 	}
 
-	_, err = testDnaSdk.Native.OntId.RevokeKey(testGasPrice, testGasLimit, testIdentity.ID, testDefAcc, testDefController.PublicKey, controller1)
+	_, err = testDnaSdk.Native.DID.RevokeKey(testGasPrice, testGasLimit, testIdentity.ID, testDefAcc, testDefController.PublicKey, controller1)
 	if err != nil {
 		t.Errorf("TestOntId_Key RevokeKey error:%s", err)
 		return
 	}
 	testDnaSdk.WaitForGenerateBlock(30*time.Second, 1)
 
-	owners, err = testDnaSdk.Native.OntId.GetPublicKeys(testIdentity.ID)
+	owners, err = testDnaSdk.Native.DID.GetPublicKeys(testIdentity.ID)
 	if err != nil {
 		t.Errorf("TestOntId_Key GetPublicKeys error:%s", err)
 		return
@@ -174,7 +223,7 @@ func TestOntId_Key(t *testing.T) {
 		return
 	}
 
-	state, err := testDnaSdk.Native.OntId.GetKeyState(testIdentity.ID, 1)
+	state, err := testDnaSdk.Native.DID.GetKeyState(testIdentity.ID, 1)
 	if err != nil {
 		t.Errorf("TestOntId_Key GetKeyState error:%s", err)
 		return
@@ -185,7 +234,7 @@ func TestOntId_Key(t *testing.T) {
 		return
 	}
 
-	state, err = testDnaSdk.Native.OntId.GetKeyState(testIdentity.ID, 2)
+	state, err = testDnaSdk.Native.DID.GetKeyState(testIdentity.ID, 2)
 	if err != nil {
 		t.Errorf("TestOntId_Key GetKeyState error:%s", err)
 		return
@@ -197,7 +246,7 @@ func TestOntId_Key(t *testing.T) {
 }
 
 func TestOntId_Attribute(t *testing.T) {
-	testIdentity, err := testWallet.NewDefaultSettingIdentity(testPasswd)
+	testIdentity, err := testWallet.NewDefaultSettingIdentity(testDidMethod, testPasswd)
 	if err != nil {
 		t.Errorf("TestOntId_Attribute NewDefaultSettingIdentity error:%s", err)
 		return
@@ -207,7 +256,7 @@ func TestOntId_Attribute(t *testing.T) {
 		t.Errorf("TestOntId_Attribute GetControllerByIndex error:%s", err)
 		return
 	}
-	_, err = testDnaSdk.Native.OntId.RegIDWithPublicKey(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, testDefController)
+	_, err = testDnaSdk.Native.DID.RegIDWithPublicKey(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, testDefController)
 	if err != nil {
 		t.Errorf("TestOntId_Attribute RegIDWithPublicKey error:%s", err)
 		return
@@ -227,13 +276,13 @@ func TestOntId_Attribute(t *testing.T) {
 		ValueType: []byte("string"),
 	}
 	attributes = append(attributes, attr2)
-	_, err = testDnaSdk.Native.OntId.AddAttributes(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, attributes, testDefController)
+	_, err = testDnaSdk.Native.DID.AddAttributes(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, attributes, testDefController)
 	if err != nil {
 		t.Errorf("TestOntId_Attribute AddAttributes error:%s", err)
 		return
 	}
 	testDnaSdk.WaitForGenerateBlock(30*time.Second, 1)
-	attrs, err := testDnaSdk.Native.OntId.GetAttributes(testIdentity.ID)
+	attrs, err := testDnaSdk.Native.DID.GetAttributes(testIdentity.ID)
 	if len(attributes) != len(attrs) {
 		t.Errorf("TestOntId_Attribute GetAttributes len:%d != %d", len(attrs), len(attributes))
 		return
@@ -243,13 +292,13 @@ func TestOntId_Attribute(t *testing.T) {
 		return
 	}
 
-	_, err = testDnaSdk.Native.OntId.RemoveAttribute(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, attr1.Key, testDefController)
+	_, err = testDnaSdk.Native.DID.RemoveAttribute(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, attr1.Key, testDefController)
 	if err != nil {
 		t.Errorf("TestOntId_Attribute RemoveAttribute error:%s", err)
 		return
 	}
 	testDnaSdk.WaitForGenerateBlock(30*time.Second, 1)
-	attrs, err = testDnaSdk.Native.OntId.GetAttributes(testIdentity.ID)
+	attrs, err = testDnaSdk.Native.DID.GetAttributes(testIdentity.ID)
 	if len(attrs) != 1 {
 		t.Errorf("TestOntId_Attribute GetAttributes len:%d != 1", len(attrs))
 		return
@@ -261,7 +310,7 @@ func TestOntId_Attribute(t *testing.T) {
 }
 
 func TestOntId_Recovery(t *testing.T) {
-	testIdentity, err := testWallet.NewDefaultSettingIdentity(testPasswd)
+	testIdentity, err := testWallet.NewDefaultSettingIdentity(testDidMethod, testPasswd)
 	if err != nil {
 		t.Errorf("TestOntId_Recovery NewDefaultSettingIdentity error:%s", err)
 		return
@@ -271,19 +320,19 @@ func TestOntId_Recovery(t *testing.T) {
 		t.Errorf("TestOntId_Recovery GetControllerByIndex error:%s", err)
 		return
 	}
-	_, err = testDnaSdk.Native.OntId.RegIDWithPublicKey(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, testDefController)
+	_, err = testDnaSdk.Native.DID.RegIDWithPublicKey(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, testDefController)
 	if err != nil {
 		t.Errorf("TestOntId_Recovery RegIDWithPublicKey error:%s", err)
 		return
 	}
 	testDnaSdk.WaitForGenerateBlock(30*time.Second, 1)
-	_, err = testDnaSdk.Native.OntId.SetRecovery(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, testDefAcc.Address, testDefController)
+	_, err = testDnaSdk.Native.DID.SetRecovery(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, testDefAcc.Address, testDefController)
 	if err != nil {
 		t.Errorf("TestOntId_Recovery SetRecovery error:%s", err)
 		return
 	}
 	testDnaSdk.WaitForGenerateBlock(30*time.Second, 1)
-	ddo, err := testDnaSdk.Native.OntId.GetDDO(testIdentity.ID)
+	ddo, err := testDnaSdk.Native.DID.GetDDO(testIdentity.ID)
 	if err != nil {
 		t.Errorf("TestOntId_Recovery GetDDO error:%s", err)
 		return
@@ -299,7 +348,7 @@ func TestOntId_Recovery(t *testing.T) {
 		return
 	}
 
-	txHash, err := testDnaSdk.Native.OntId.SetRecovery(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, acc1.Address, testDefController)
+	txHash, err := testDnaSdk.Native.DID.SetRecovery(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, acc1.Address, testDefController)
 
 	testDnaSdk.WaitForGenerateBlock(30*time.Second, 1)
 	evt, err := testDnaSdk.GetSmartContractEvent(txHash.ToHexString())
@@ -311,13 +360,13 @@ func TestOntId_Recovery(t *testing.T) {
 		t.Errorf("TestOntId_Recovery duplicate add recovery should failed")
 		return
 	}
-	_, err = testDnaSdk.Native.OntId.ChangeRecovery(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, acc1.Address, testDefAcc.Address, testDefController)
+	_, err = testDnaSdk.Native.DID.ChangeRecovery(testGasPrice, testGasLimit, testDefAcc, testIdentity.ID, acc1.Address, testDefAcc.Address, testDefController)
 	if err != nil {
 		t.Errorf("TestOntId_Recovery ChangeRecovery error:%s", err)
 		return
 	}
 	testDnaSdk.WaitForGenerateBlock(30*time.Second, 1)
-	ddo, err = testDnaSdk.Native.OntId.GetDDO(testIdentity.ID)
+	ddo, err = testDnaSdk.Native.DID.GetDDO(testIdentity.ID)
 	if err != nil {
 		t.Errorf("TestOntId_Recovery GetDDO error:%s", err)
 		return

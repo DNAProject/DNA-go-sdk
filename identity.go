@@ -20,7 +20,6 @@ import (
 
 const (
 	SCHEME = "did"
-	METHOD = "ont"
 	VER    = 0x41
 )
 
@@ -180,8 +179,8 @@ type Identity struct {
 	scrypt      *keypair.ScryptParam
 }
 
-func NewIdentity(scrypt *keypair.ScryptParam) (*Identity, error) {
-	id, err := GenerateID()
+func NewIdentity(didMethod string, scrypt *keypair.ScryptParam) (*Identity, error) {
+	id, err := GenerateID(didMethod)
 	if err != nil {
 		return nil, err
 	}
@@ -355,16 +354,19 @@ type IdentityData struct {
 	scrypt    *keypair.ScryptParam
 }
 
-func GenerateID() (string, error) {
+func GenerateID(didMethod string) (string, error) {
 	var buf [32]byte
 	_, err := rand.Read(buf[:])
 	if err != nil {
 		return "", fmt.Errorf("generate ID error, %s", err)
 	}
-	return CreateID(buf[:])
+	return CreateID(didMethod, buf[:])
 }
 
-func CreateID(nonce []byte) (string, error) {
+func CreateID(didMethod string, nonce []byte) (string, error) {
+	if len(didMethod) != 3 {
+		return "", fmt.Errorf("invalid length of didMethod")
+	}
 	hasher := ripemd160.New()
 	_, err := hasher.Write(nonce)
 	if err != nil {
@@ -379,7 +381,7 @@ func CreateID(nonce []byte) (string, error) {
 		return "", fmt.Errorf("create ID error, %s", err)
 	}
 
-	return SCHEME + ":" + METHOD + ":" + string(idstring), nil
+	return SCHEME + ":" + didMethod + ":" + string(idstring), nil
 }
 
 func VerifyID(id string) bool {
